@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Exclusive Task Generator</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⭐</text></svg>">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+body {
+    background-color: #f8fafc;
+    color: #1a1a1a;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    padding-bottom: 120px;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+/* --- GLASS EFFECT STYLES --- */
+.glass-nav {
+    background: rgba(255, 255, 255, 0.75) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.glass-btn {
+    background: rgba(33, 37, 41, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    transition: transform 0.2s ease, background 0.2s;
+    min-width: 120px; 
+}
+.glass-btn:hover {
+    background: rgba(33, 37, 41, 0.95);
+    color: #fff;
+    transform: scale(1.05);
+}
+.glass-btn-light {
+    background: rgba(255, 255, 255, 0.9);
+    color: #0dcaf0;
+    border: 1px solid #0dcaf0;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    min-width: 120px; 
+}
+.glass-btn-light:hover {
+    background: #fff;
+    color: #0aa2c0;
+    transform: scale(1.05);
+}
+
+.navbar { background: transparent; }
+
+/* --- FLOATING CONTAINER --- */
+.floating-actions {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1040; 
+    display: flex;
+    flex-direction: column; 
+    gap: 12px;
+    align-items: flex-end;
+}
+
+/* Detail view styling */
+#taskDetail {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    padding: 30px;
+    margin-top: 20px;
+}
+/* About view styling */
+#aboutSection {
+    display: none;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    padding: 50px 30px;
+    margin-top: 20px;
+    text-align: center;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 28px;
+}
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #ccc;
+    transition: 0.4s;
+    border-radius: 36px;
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.3);
+}
+.slider::before {
+    position: absolute;
+    content: "";
+    height: 20px; width: 20px;
+    left: 4px; bottom: 4px;
+    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+.toggle-switch input:checked + .slider {
+    background-color: #0d6efd;
+    box-shadow: 0 0 10px rgba(13, 110, 253, 0.8);
+}
+.toggle-switch input:checked + .slider::before { transform: translateX(32px); }
+
+.feature-icon-box {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    background: #e7f1ff;
+    color: #0d6efd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    margin: 0 auto 15px;
+}
+#templateList { cursor: pointer; }
+.task-item {
+    transition: background 0.2s, transform 0.1s;
+}
+.task-item:hover {
+    background-color: #e9ecef !important;
+    transform: translateY(-2px);
+}
+
+/* TD TASK Display Banner */
+#tdTaskDisplay {
+    transition: all 0.3s ease;
+}
+#tdTaskDisplay.logged-active {
+    box-shadow: 0 0 15px rgba(13, 110, 253, 0.2);
+    border: 2px solid #0d6efd !important;
+}
+
+/* Custom Select Buttons */
+.btn-white {
+    background-color: #fff;
+    border-color: #dee2e6;
+    color: #212529;
+}
+.dropdown-item:hover {
+    background-color: #f8f9fa;
+}
+
+/* --- CURSOR PARTICLES --- */
+#cursorCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none; 
+    z-index: 9999; 
+}
+
+/* --- DARK MODE OVERRIDES --- */
+[data-bs-theme="dark"] body { background-color: #121212; color: #e0e0e0; }
+[data-bs-theme="dark"] .glass-nav { background: rgba(33, 37, 41, 0.85) !important; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+[data-bs-theme="dark"] #taskDetail, [data-bs-theme="dark"] #aboutSection { background: #1e1e1e; color: #eee; border: 1px solid #333; }
+[data-bs-theme="dark"] .task-item { background-color: #2d2d2d !important; color: #eee; border-color: #444 !important; }
+[data-bs-theme="dark"] .task-item:hover { background-color: #3d3d3d !important; }
+[data-bs-theme="dark"] .form-control, [data-bs-theme="dark"] .form-select { background-color: #2d2d2d; color: #fff; border-color: #444; }
+[data-bs-theme="dark"] #tdTaskDisplay { background-color: #262626 !important; border-color: #444 !important; }
+[data-bs-theme="dark"] #tdTaskName { color: #fff !important; }
+[data-bs-theme="dark"] .btn-white { background-color: #2d2d2d; border-color: #444; color: #fff; }
+[data-bs-theme="dark"] .dropdown-menu { background-color: #2d2d2d; border-color: #444; }
+[data-bs-theme="dark"] .dropdown-item { color: #eee; }
+[data-bs-theme="dark"] .dropdown-item:hover { background-color: #3d3d3d; color: #fff; }
+
+/* Menu Hover FX */
+.game-btn { transition: transform 0.2s; }
+.game-btn:hover { transform: scale(1.05); }
+</style>
+</head>
+<body>
+
+<div id="gameMenuContainer" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:9000; background:rgba(20,20,20,0.95); backdrop-filter: blur(10px); flex-direction: column; align-items: center; justify-content: center;">
+    <h1 class="text-white mb-5 fw-bold" style="font-size: 3rem; text-shadow: 0 0 20px #0dcaf0;">Select a Game</h1>
+    <div class="d-flex gap-4 flex-wrap justify-content-center">
+        <button class="btn btn-outline-info btn-lg p-4 game-btn" onclick="startMazeGame()">
+            <i class="bi bi-controller d-block mb-2" style="font-size: 2rem;"></i>
+            Maze Escape
+        </button>
+        <button class="btn btn-outline-warning btn-lg p-4 game-btn" onclick="startBrickGame()">
+            <i class="bi bi-bricks d-block mb-2" style="font-size: 2rem;"></i>
+            Ball vs Brick
+        </button>
+    </div>
+    <button class="btn btn-danger mt-5" onclick="closeGameMenu()">Close</button>
+</div>
+
+<div id="mazeContainer" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:9000; background:rgba(20,20,20,0.95); cursor:crosshair; backdrop-filter: blur(10px);">
+    <canvas id="mazeCanvas"></canvas>
+    <div id="mazeUI" style="position:absolute; top:30px; left:30px; color:white; font-size:24px; font-weight:bold; pointer-events:none; font-family: monospace;">
+        HEALTH: <span id="mazeHearts">❤️❤️❤️</span> <br>
+        LEVEL: <span id="mazeLevel">1</span> / 3
+    </div>
+    <div id="mazeMessage" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:white; font-size:36px; font-weight:bold; text-align:center; pointer-events:none; text-shadow: 0 0 15px #0dcaf0; transition: 0.3s;">
+        Move to the Green Start Area!
+    </div>
+    <button id="mazeCloseBtn" class="btn btn-outline-danger" style="position:absolute; top:30px; right:30px; z-index:9001; pointer-events:auto;" onclick="stopMazeGame()">Exit Maze</button>
+</div>
+
+<div id="brickContainer" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:9000; background:rgba(20,20,20,0.95); cursor:crosshair; backdrop-filter: blur(10px);">
+    <canvas id="brickCanvas"></canvas>
+    <div id="brickUI" style="position:absolute; top:30px; left:30px; color:white; font-size:24px; font-weight:bold; pointer-events:none; font-family: monospace; z-index: 9002;">
+        LIVES: <span id="brickLives">❤️❤️❤️</span> <br>
+        SCORE: <span id="brickScore">0</span>
+    </div>
+    <div id="brickMessage" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:white; font-size:36px; font-weight:bold; text-align:center; pointer-events:none; text-shadow: 0 0 15px #ffc107; transition: 0.3s; display:none; z-index: 9002;">
+        Game Over!
+    </div>
+    <button class="btn btn-outline-danger" style="position:absolute; top:30px; right:30px; z-index:9001; pointer-events:auto;" onclick="stopBrickGame()">Exit Game</button>
+</div>
+
+<canvas id="cursorCanvas"></canvas>
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 2055" id="toastContainer"></div>
+
+<nav class="navbar navbar-expand-lg sticky-top p-3 glass-nav">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-bold" href="#" onclick="showHome()">📋 Task Generator</a>
+    <div class="ms-auto d-flex align-items-center gap-2 flex-wrap">
+      <button class="btn btn-sm btn-outline-secondary" id="darkModeToggle" title="Toggle Dark Mode">
+          <i class="bi bi-moon"></i>
+      </button>
+      <small class="text-muted ms-3" id="lastUpdated"></small>
+    </div>
+  </div>
+</nav>
+
+<div class="container py-4">
+
+<div class="modal fade" id="logsModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-xl">
+    <div class="modal-content rounded-4">
+      <div class="modal-header bg-primary text-white rounded-top-4">
+        <h5 class="modal-title"><i class="bi bi-journal-text me-2"></i>Daily Work Logs</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body p-4">
+        <div id="logStatsContainer" class="row mb-4 text-center"></div>
+
+        <div id="logsTableContainer" class="table-responsive">
+          <p class="text-center text-muted mb-0">No logs recorded yet.</p>
+        </div>
+      </div>
+
+      <div class="modal-footer d-flex justify-content-between">
+        <button class="btn btn-outline-success" id="generateLogBtn">
+          <i class="bi bi-file-earmark-excel"></i> Generate Daily Report
+        </button>
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <div id="taskDetail">
+    <h4 class="mb-3 fw-bold text-primary border-bottom pb-2">Create & Log Task</h4>
+    
+    <div id="tdTaskDisplay" class="mb-4 p-4 border rounded bg-light position-relative overflow-hidden">
+        <div class="d-flex align-items-center gap-2 mb-2">
+            <span class="badge bg-primary fs-6 shadow-sm" id="tdBrandBadge">Brand</span>
+            <span class="badge bg-success fs-6 shadow-sm" id="tdCategoryBadge">Category</span>
+        </div>
+        <h3 class="fw-bold mb-0 text-dark" id="tdTaskName">Untitled Task</h3>
+        <i class="bi bi-list-task position-absolute end-0 bottom-0 text-secondary opacity-25" style="font-size: 6rem; margin-right: -10px; margin-bottom: -20px; pointer-events: none;"></i>
+    </div>
+
+    <div class="row g-3 mb-4">
+        
+        <div class="col-md-4">
+            <label class="form-label fw-bold small text-muted text-uppercase">Brand</label>
+            <div class="dropdown w-100">
+                <button class="btn btn-white border shadow-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" id="brandDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                    <span id="brandDropdownText" class="text-truncate">None</span>
+                </button>
+                <div class="dropdown-menu w-100 p-2 shadow-sm" aria-labelledby="brandDropdownBtn">
+                    <input type="text" class="form-control form-control-sm mb-2" id="brandSearchInput" placeholder="Search brand..." autocomplete="off">
+                    <div id="brandListContainer" style="max-height: 220px; overflow-y: auto;">
+                        </div>
+                </div>
+            </div>
+            <input type="hidden" id="brandSelect" value="None">
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label fw-bold small text-muted text-uppercase">Task Category</label>
+            <div class="dropdown w-100">
+                <button class="btn btn-white border shadow-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" id="categoryDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                    <span id="categoryDropdownText" class="text-truncate">A/B Test</span>
+                </button>
+                <div class="dropdown-menu w-100 p-2 shadow-sm" aria-labelledby="categoryDropdownBtn">
+                    <input type="text" class="form-control form-control-sm mb-2" id="categorySearchInput" placeholder="Search category..." autocomplete="off">
+                    <div id="categoryListContainer" style="max-height: 220px; overflow-y: auto;">
+                        </div>
+                </div>
+            </div>
+            <input type="hidden" id="categorySelect" value="A/B Test">
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label fw-bold small text-muted text-uppercase">Manual Task Name</label>
+            <input type="text" id="taskNameInput" class="form-control shadow-sm" placeholder="E.g., Update listing images" oninput="checkLogToggle(); updateTemplatePreviews()">
+        </div>
+    </div>
+
+    <div class="d-flex align-items-center gap-3 mb-4 p-3 bg-light rounded border" data-bs-theme="light">
+        <label class="toggle-switch">
+          <input type="checkbox" id="logToggle" onchange="toggleLog(this)">
+          <span class="slider"></span>
+        </label>
+        <span class="fw-bold text-secondary" id="workingLabel">Log this Task?</span>
+    </div>
+
+    <h5 class="fw-bold mb-3">Templates <small class="text-muted fw-normal fs-6">(Click to copy)</small></h5>
+    <div class="d-flex flex-wrap gap-2 mb-3" id="bubbleContainer"></div>
+    <input type="text" class="form-control mb-4 shadow-sm" id="templateSearch" autocomplete="off" placeholder="Search templates... (Auto-saves after 2 seconds)">
+    
+    <div id="templateList"></div>
+  </div>
+
+  <div id="aboutSection">
+      <div class="mb-5">
+        <img src="https://cdn-icons-png.flaticon.com/512/906/906334.png" alt="Task Icon" style="width: 80px; margin-bottom: 20px;">
+        <h1 class="display-6 fw-bold mb-3">Exclusive Task Generator</h1>
+        <p class="text-muted fs-5">A standalone utility designed for rapid task naming, automated clipboard formatting, and generating end-of-day workflow reports.</p>
+        
+        <div class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill mt-2" onclick="openGameMenu()" style="cursor:crosshair;" title="Secret Arcade">✨ Version 3.3.0</div>
+      </div>
+      
+      <div class="row justify-content-center g-4 text-center">
+        <div class="col-md-4">
+            <div class="feature-icon-box"><i class="bi bi-input-cursor-text"></i></div>
+            <h6 class="fw-bold">Dynamic Generators</h6>
+            <p class="small text-muted">Variables update automatically based on your dropdown selections.</p>
+        </div>
+        <div class="col-md-4">
+            <div class="feature-icon-box"><i class="bi bi-file-earmark-spreadsheet"></i></div>
+            <h6 class="fw-bold">Daily Logs</h6>
+            <p class="small text-muted">Generate & export CSV reports manually at any time.</p>
+        </div>
+        <div class="col-md-4">
+            <div class="feature-icon-box"><i class="bi bi-clipboard-check"></i></div>
+            <h6 class="fw-bold">1-Click Copy</h6>
+            <p class="small text-muted">Click any template below to copy it formatted directly to your clipboard.</p>
+        </div>
+      </div>
+
+      <hr class="my-5 opacity-25">
+
+      <div class="text-center">
+        <h5 class="fw-bold mb-3">🚀 Ready to maximize productivity?</h5>
+        <button class="btn btn-primary px-4 py-2 rounded-pill shadow-sm" onclick="showHome()">
+            <i class="bi bi-arrow-left me-2"></i> Return to Generator
+        </button>
+      </div>
+  </div>
+  
+</div>
+
+<div class="floating-actions">
+    <button id="aboutBtn" class="btn glass-btn shadow">
+        <i class="bi bi-info-circle"></i> About
+    </button>
+    <button id="viewLogsBtn" class="btn glass-btn-light shadow">
+        <i class="bi bi-journal-text"></i> View Logs
+    </button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// RAW DATA ARRAYS
+const rawBrandsList = [
+    "None", "RevolutionRace", "Heartland Footwear", "Highline United - Ash", "Highline United - Sanctuary",
+    "SafetyShirtz", "Wohali", "TRU-SPEC-2P", "Shurhold", "Camper", "Bumbleride", "Wonderfold-2P",
+    "Arm's Reach", "Hootenanny Games", "Stick-O / Magformers", "Cybex", "Evenflo - 2P", "Fieldsheer",
+    "Joovy", "Moon Boot", "Plan Toys", "Sebago", "Volatile", "Dunross & Sons", "Helly Hansen Sportswear",
+    "Helly Hansen Workwear", "Lemon Jelly", "Silver Jeans", "Servus", "Tru-Spec", "Cybex (3P)", "Kaepa",
+    "Carolina/Double-H", "Kryptek", "Justin Brands", "Snugpak", "Tasmanian Tiger", "Seiko", "Carhartt Footwear",
+    "Brandit", "Old Friend", "ALPS Brands", "Eagle Creek", "Frye", "CAT Workwear", "Bekina", "Orvis",
+    "Viking", "Footmates", "Tsukihoshi", "Bolle", "Belleville/Tactical Research", "Sockwell", "Danner",
+    "LaCrosse", "Arborwear", "Thorogood", "TEST ONLY", "Walker and Hawkes", "Refrigiwear", "Groundies",
+    "Clek", "Hot Chocolate Design", "Superga", "WONDERFOLD-3P", "Turtle Fur", "EVENFLO", "Psycho Bunny",
+    "Kenneth Cole", "GermGuardian", "Boppy", "USCAPE", "C Seven", "Vertx_2P", "All Brands-3P", "Riedell",
+    "Kamik", "Cloud Nine Sheepskin", "All Brands", "Cienta", "Vertx", "Cole Haan", "Dinair", "TRUE Linkswear",
+    "Dovetail Workwear", "Scientific Anglers", "Invirox", "Trenditions", "Dunlop Footwear", "Hultafors", "Lotto Sport"
+];
+
+const taskCategoriesList = [
+    "A/B Test", "Assets Assessment", "Brand Story", "Bulk", "CBPO Listing", "Closeout", "Data Validation",
+    "Enhancement", "Escalation", "Infographics", "Listing Concern", "Listing Data", "Listing Loader",
+    "LSS/DSS Creation", "New Release", "New Supplier", "Non-UPC Match", "Opening Order", "Other",
+    "Prebook", "RW Report", "SEO", "Shopify", "Store", "Suppressed & Quality", "UPC Match", "Video Upload",
+    "Premium A+", "Infographics / Premium A+", "Basic A+", "Product Condition Complaints", "Policy Warning",
+    "Stranded fixing", "Product Removal Notice", "Missing Assets", "Assistance", "Variation"
+];
+
+const templateCategories = { 
+    "Validation": [ "[brand]-validating-data for new supplier", "[brand]-validating-upc list source" ], 
+    "Analysis": [ "[brand]-analyzing-task prioritization", "[brand]-analyzing-new supplier source", "[brand]-analyzing-existing supplier source", "[brand]-analyzing-bulk order source", "[brand]-analyzing-prebook order source", "[brand]-analyzing-inventory for deletion", "[brand]-analyzing-listing loader request", "[brand]-analyzing-shopify source", "analyzing-manage experiment", "[brand]-analyzing-shopkeep source" ], 
+    "Gathering Data": [ "[brand]-gathering-new supplier data", "[brand]-gathering-existing supplier data", "[brand]-gathering-bulk/preebook data", "[brand]-gathering-enhancement data", "[brand]-gathering-flat file data", "[brand]-gathering-pre existing asins", "[brand]-gathering-skus for deletion", "[brand]-gathering-brand store data", "[brand]-gathering-shopify data", "[brand]-gathering-shopkeep data", "[brand]-gathering-skus for deletion", "[brand]-gathering-SIPV", "[brand]-gathering-manage experiment", "all brands-gathering-voice of the customer", "all brands-gathering-suppressed listings", "all brands-gathering-stranded listings", "all brands-gathering-standalone listings" ], 
+    "Creation": [ "[brand]-creating-new supplier masterlist", "[brand]-creating-existing supplier masterlist", "[brand]-creating- bulk/prebook masterlist", "[brand]-creating-new supplier listing loader file", "[brand]-creating-existing supplier listing loader file", "[brand]-creating-bulk/prebook listing loader file", "[brand]-creating-new supplier ilf", "[brand]-creating-existing supplier ilf", "[brand]-creating-bulk/prebook ilf", "[brand]-creating-new supplier cost sheet", "[brand]-creating-new supplier sku upc list", "[brand]-creating-existing supplier cost sheet", "[brand]-creating-existing supplier sku upc list", "[brand]-creating-bulk/prebook cost sheet", "[brand]-creating-bulk/prebook sku upc list", "[brand]-creating-existing supplier advertising campaign list", "[brand]-creating-flat file enhancement", "[brand]-creating-flat file listing concern", "creating-manage experiment", "[brand]-creating-ebc enhancement" ], 
+    "Verification / Image Update": [ "[brand]-verifying-upc match manual", "[brand]-verifying-data central result", "[brand]-verifying-listing loader request", "[brand]-verifying-image urls", "[brand]-enhancing-images for enhancement", "[brand]-updating-sas flat file", "[brand]-updating-listing in amazon", "[brand]-updating-edit page manually enhancement" ], 
+    "Review / Upload": [ "[brand]-reviewing-all files", "[brand]-reviewing-newly uploaded listings","[brand]-reviewing-newly uploaded listings enhancement", "[brand]-uploading-ilf", "[brand]-uploading-flat file", "[brand]-uploading-shipping plan", "[brand]-uploading-weights and dimensions", "[brand]-uploading-video", "[brand]-uploading-images", "[brand]-attaching-files in bc", "[brand]-reviewing-all files enhancement", "[brand]-attaching-files in bc enhancement", "[brand]-uploading-flat file enhancement", "[brand]-uploading-video enhancement" ], 
+    "Investigation / Fixing / Correction": [ "[brand]-investigating-listing issue", "[brand]-fixing-suppressed/quality alerts", "[brand]-fixing-stranded inventory", "[brand]-fixing-standalone", "[brand]-correcting-masterlist file", "[brand]-correcting-ilf", "[brand]-correcting-cost sheet", "[brand]-correcting-sku-upc list", "[brand]-correcting-flatfile error", "[brand]-investigating-pesticide marking", "[brand]-fixing-listing issue", "[brand]-investigating-listing enhancement", "[brand]-correcting-flatfile error enhancement", "[brand]-investigating-SIP", "[brand]-investigating-policy warning", "[brand]-investigating-inaccurate condition complaint" ], 
+    "Update / Send & Monitor Case": [ "[brand]-updating-trackers", "[brand]-updating-ebc", "[brand]-updating-search terms", "[brand]-sending-amazon case", "[brand]-sending-sas email", "[brand]-checking-amazon case & ff ups", "[brand]-checking-sas response", "[brand]-sending-sas ops", "[brand]-sending-amazon case enhancement", "[brand]-checking-amazon case & ff ups enhancement", "[brand]-updating-ebc enhancement", "[brand]-updating-search terms enhancement", "[brand]-sending-appeal" ], 
+    "Monitoring": [ "none-checking-skype concerns", "none-checking-email concerns", "none-checking-basecamp notifications", "none-prioritizing tasks", "none-addressing-concerns-via skype", "none-addressing-concerns-via email", "none-addressing-concerns-via basecamp", "[brand]-logging-in 2P account", "[brand]-logging-in 1P account" ], 
+    "Admin": [ "admin-break", "admin-training:[task]-{person}", "admin-feedbacking-[name of person/group]", "admin-assisting-[task] [name of person/group]", "admin-meeting-{name of person/group}", "admin-coaching-{name of person/group}", "sbs-certifying-[task name]-[name of agent]", "admin-observing:[task]-[name of person]", "admin-meeting-team-listing ex", "admin-1on1-[name]", "[brand]-creating-flat file", "[brand]-updating-listing in amazon (manual)", "[brand]-creating-listing in amazon (manual)", "[brand]-creating-deletion file", "[brand]-gathering-images for EBC", "[brand]-creating-ebc enhancement", "[brand]-updating-ebc enhancement", "[brand]-certify-" ] 
+};
+
+// NORMALIZATION LOGIC
+function normalizeBrandName(brand) {
+  if (!brand) return brand;
+  const b = brand.trim().toLowerCase();
+  if (b === "carolina/double h boots" || b === "carolina/double-h") return "Carolina/Double H";
+  if (b === "vertx_2p") return "Vertx";
+  if (b === "evenflo - 2p") return "Evenflo";
+  if (b === "tru-spec-2p" || b === "tru-spec") return "TRUE-SPEC";
+  if (b === "wonderfold-2p") return "Wonderfold";
+  if (b === "cybex (3p)") return "Cybex";
+  if (b === "wonderfold-3p") return "WONDERFOLD";
+  if (b === "all brands-3p") return "All Brands";
+  return brand;
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    initDarkMode();
+    initTaskGenerator();
+    updateLastUpdated();
+    
+    document.getElementById("aboutBtn").addEventListener("click", showAbout);
+    document.getElementById("viewLogsBtn").addEventListener("click", () => {
+        showLogs();
+        new bootstrap.Modal(document.getElementById("logsModal")).show();
+    });
+});
+
+function initDarkMode() {
+    const darkModeBtn = document.getElementById("darkModeToggle");
+    const savedTheme = localStorage.getItem("theme") || "light";
+    
+    function applyTheme(isDark) {
+        document.documentElement.setAttribute('data-bs-theme', isDark ? 'dark' : 'light');
+        darkModeBtn.innerHTML = isDark ? '<i class="bi bi-sun"></i>' : '<i class="bi bi-moon"></i>';
+        localStorage.setItem("theme", isDark ? "dark" : "light");
+    }
+    
+    applyTheme(savedTheme === "dark");
+    darkModeBtn.addEventListener("click", () => {
+        const isCurrentlyDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        applyTheme(!isCurrentlyDark);
+    });
+}
+
+function showAbout() {
+    document.getElementById("taskDetail").style.display = "none";
+    document.getElementById("aboutSection").style.display = "block";
+    window.scrollTo(0, 0); 
+}
+
+function showHome() {
+    document.getElementById("taskDetail").style.display = "block";
+    document.getElementById("aboutSection").style.display = "none";
+}
+
+function renderDropdownList(listContainerId, dataArray, hiddenInputId, buttonTextId, dropdownBtnId) {
+    const container = document.getElementById(listContainerId);
+    container.innerHTML = "";
+    
+    dataArray.forEach(item => {
+        const a = document.createElement("a");
+        a.className = "dropdown-item rounded small py-2";
+        a.href = "#";
+        a.textContent = item;
+        
+        a.addEventListener("click", (e) => {
+            e.preventDefault();
+            document.getElementById(hiddenInputId).value = item;
+            document.getElementById(buttonTextId).textContent = item;
+            
+            // Close the dropdown properly using Bootstrap 5
+            const dropdownElement = document.getElementById(dropdownBtnId);
+            const bsDropdown = bootstrap.Dropdown.getOrCreateInstance(dropdownElement);
+            bsDropdown.hide();
+            
+            checkLogToggle();
+            updateTemplatePreviews();
+        });
+        
+        container.appendChild(a);
+    });
+}
+
+function initTaskGenerator() {
+    // 1. Sort Data Arrays
+    const sortedBrands = rawBrandsList.sort((a,b) => a.localeCompare(b));
+    const sortedCats = taskCategoriesList.sort((a,b) => a.localeCompare(b));
+
+    // 2. Setup Default Values
+    document.getElementById("brandSelect").value = "None";
+    document.getElementById("categorySelect").value = sortedCats[0];
+    document.getElementById("brandDropdownText").textContent = "None";
+    document.getElementById("categoryDropdownText").textContent = sortedCats[0];
+
+    // 3. Render Custom Searchable Dropdown Lists
+    renderDropdownList("brandListContainer", sortedBrands, "brandSelect", "brandDropdownText", "brandDropdownBtn");
+    renderDropdownList("categoryListContainer", sortedCats, "categorySelect", "categoryDropdownText", "categoryDropdownBtn");
+
+    // 4. Attach Live Search Filtering to Dropdowns
+    document.getElementById("brandSearchInput").addEventListener("input", function(e) {
+        const filterStr = e.target.value.toLowerCase();
+        const items = document.getElementById("brandListContainer").querySelectorAll(".dropdown-item");
+        items.forEach(item => {
+            if(item.textContent.toLowerCase().includes(filterStr)) {
+                item.style.display = "block";
+            } else {
+                item.style.display = "none";
+            }
+        });
+    });
+
+    document.getElementById("categorySearchInput").addEventListener("input", function(e) {
+        const filterStr = e.target.value.toLowerCase();
+        const items = document.getElementById("categoryListContainer").querySelectorAll(".dropdown-item");
+        items.forEach(item => {
+            if(item.textContent.toLowerCase().includes(filterStr)) {
+                item.style.display = "block";
+            } else {
+                item.style.display = "none";
+            }
+        });
+    });
+
+    // 5. Render Template Category Grids
+    let rendered = "";
+    for (const [header, items] of Object.entries(templateCategories)) {
+        rendered += `
+        <h6 class="mt-4 mb-2 fw-bold text-primary">${header}</h6>
+        <div class="row g-2">
+            ${items.map(item => `
+                <div class="col-md-6">
+                    <div class="task-item d-flex align-items-center border rounded px-3 py-2 small bg-light" title="Click to copy template" data-raw-template="${item}">
+                        <i class="bi bi-clipboard me-2 text-muted"></i>
+                        <span class="flex-grow-1 text-truncate fw-medium template-text">${item}</span>
+                    </div>
+                </div>
+            `).join("")}
+        </div>
+        `;
+    }
+    document.getElementById("templateList").innerHTML = rendered;
+
+    // 6. Attach click events for copying
+    document.querySelectorAll(".task-item").forEach(item => {
+        item.addEventListener("click", e => {
+            e.stopPropagation();
+            const textToCopy = item.querySelector(".template-text").textContent;
+            navigator.clipboard.writeText(textToCopy).then(() => showCopied(item));
+        });
+    });
+
+    setupSearchAndBubbles();
+    checkLogToggle();
+    
+    // Run once on load to populate the initial UI Variables correctly
+    updateTemplatePreviews();
+}
+
+// REAL-TIME UPDATES FOR BOTH TD DISPLAY AND TEMPLATES
+function updateTemplatePreviews() {
+    const rawBrand = document.getElementById("brandSelect").value;
+    const brand = normalizeBrandName(rawBrand); // Use Globalized Brand
+    
+    const category = document.getElementById("categorySelect").value;
+    const taskName = document.getElementById("taskNameInput").value.trim();
+
+    // 1. Update the TD Task Display Header
+    document.getElementById("tdBrandBadge").textContent = brand === "None" ? "No Brand" : brand;
+    document.getElementById("tdCategoryBadge").textContent = category || "No Category";
+    
+    // Format Display Banner Name (Convert brand to lowercase)
+    let displayTaskStr = "";
+    if (brand && brand !== "None") {
+        displayTaskStr += `[${brand.toLowerCase()}] `;
+    }
+    displayTaskStr += taskName || "Untitled Task";
+    document.getElementById("tdTaskName").textContent = displayTaskStr;
+    
+    // Highlight the TD Task container if it's currently logged
+    const logs = JSON.parse(localStorage.getItem("taskLogs") || "[]");
+    const dateStr = new Date().toISOString().split("T")[0];
+    const isLogged = logs.some(l => l.date === dateStr && l.task === taskName && l.brand === brand && l.subtask === category);
+    
+    const tdContainer = document.getElementById("tdTaskDisplay");
+    if(isLogged && taskName) {
+        tdContainer.classList.add("logged-active");
+    } else {
+        tdContainer.classList.remove("logged-active");
+    }
+
+    // 2. Update Template strings instantly
+    document.querySelectorAll(".task-item").forEach(item => {
+        const rawTemplate = item.getAttribute("data-raw-template");
+        const span = item.querySelector(".template-text");
+
+        let displayText = rawTemplate;
+        const isNoBrand = rawTemplate.toLowerCase().startsWith("admin") || rawTemplate.toLowerCase().startsWith("none");
+
+        if (!isNoBrand) {
+            if (brand === "None" || !brand) {
+                displayText = rawTemplate.replace(/\[brand\]-?/gi, "");
+            } else {
+                // Apply lowercasing to the brand here
+                displayText = rawTemplate.replace(/\[brand\]/gi, brand.toLowerCase());
+            }
+            if (taskName) {
+                displayText += ` (${taskName})`;
+            }
+        }
+        span.textContent = displayText;
+    });
+}
+
+function showCopied(element) {
+    const old = element.querySelector(".copied-indicator");
+    if (old) old.remove();
+    const indicator = document.createElement("span");
+    indicator.className = "copied-indicator ms-2 text-success fw-bold";
+    indicator.innerText = "Copied!";
+    element.appendChild(indicator);
+    setTimeout(() => indicator.remove(), 1200);
+}
+
+function setupSearchAndBubbles() {
+    const searchInput = document.getElementById("templateSearch");
+    let debounceTimer; 
+    
+    function refreshBubbles() {
+        let recentSearches = JSON.parse(localStorage.getItem("recentSearches") || "[]");
+        recentSearches = recentSearches.filter((item, index, self) =>
+            index === self.findIndex((t) => (t.toLowerCase() === item.toLowerCase()))
+        );
+
+        if (recentSearches.length > 15) {
+            recentSearches = recentSearches.slice(0, 15);
+            localStorage.setItem("recentSearches", JSON.stringify(recentSearches));
+        }
+
+        if (recentSearches.length === 0) {
+            recentSearches = ["Validating", "Analyzing", "Gathering", "Creation", "Admin"];
+        }
+
+        const bubblesHtml = recentSearches.map(term => 
+            `<button type="button" class="btn btn-sm btn-outline-primary rounded-pill search-bubble" style="font-size: 0.8rem;">${term}</button>`
+        ).join("");
+
+        const container = document.getElementById("bubbleContainer");
+        container.innerHTML = bubblesHtml;
+
+        container.querySelectorAll(".search-bubble").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const val = btn.textContent;
+                searchInput.value = val;
+                performSearch(val);
+            });
+        });
+    }
+
+    function performSearch(term) {
+        const lowerTerm = term.toLowerCase();
+        document.querySelectorAll("#templateList h6").forEach(header => {
+            const section = header.nextElementSibling;
+            let anyVisible = false;
+            section.querySelectorAll(".col-md-6").forEach(div => {
+                const text = div.innerText.toLowerCase();
+                const match = text.includes(lowerTerm);
+                div.style.display = match ? "" : "none";
+                if (match) anyVisible = true;
+            });
+            header.style.display = anyVisible ? "" : "none";
+            section.style.display = anyVisible ? "" : "none";
+        });
+    }
+
+    searchInput.addEventListener("input", (e) => {
+        const val = e.target.value;
+        performSearch(val);
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            const trimmedVal = val.trim();
+            if (trimmedVal.length > 2) {
+                let history = JSON.parse(localStorage.getItem("recentSearches") || "[]");
+                history = history.filter(h => h.toLowerCase() !== trimmedVal.toLowerCase());
+                history.unshift(trimmedVal);
+                if (history.length > 15) history = history.slice(0, 15);
+                localStorage.setItem("recentSearches", JSON.stringify(history));
+                refreshBubbles();
+            }
+        }, 2000); 
+    });
+
+    refreshBubbles();
+}
+
+function checkLogToggle() {
+    const toggle = document.getElementById("logToggle");
+    if (!toggle) return;
+
+    const taskTitle = document.getElementById("taskNameInput").value.trim();
+    const rawBrand = document.getElementById("brandSelect").value;
+    const brand = normalizeBrandName(rawBrand);
+    const subTask = document.getElementById("categorySelect").value;
+    
+    if (!taskTitle) {
+        toggle.checked = false;
+        document.getElementById("workingLabel").style.color = '#6c757d';
+        return;
+    }
+
+    const now = new Date();
+    const dateStr = now.toISOString().split("T")[0];
+    const logs = JSON.parse(localStorage.getItem("taskLogs") || "[]");
+    
+    const already = logs.some(l => l.date === dateStr && l.task === taskTitle && l.brand === brand && l.subtask === subTask);
+    toggle.checked = already;
+
+    const label = document.getElementById("workingLabel");
+    if (toggle.checked) {
+        label.style.color = '#0d6efd';
+        label.style.textShadow = '0 0 8px rgba(13,110,253,0.6)';
+    } else {
+        label.style.color = '#6c757d';
+        label.style.textShadow = 'none';
+    }
+}
+
+function toggleLog(toggleEl) {
+    const taskTitle = document.getElementById("taskNameInput").value.trim();
+    const rawBrand = document.getElementById("brandSelect").value;
+    const brand = normalizeBrandName(rawBrand);
+    const subTask = document.getElementById("categorySelect").value;
+
+    if (!taskTitle) {
+        showBanner("Please enter a Task Name before logging.", "warning");
+        toggleEl.checked = false;
+        return;
+    }
+
+    const now = new Date();
+    const dateStr = now.toISOString().split("T")[0];
+    let logs = JSON.parse(localStorage.getItem("taskLogs") || "[]");
+
+    if (toggleEl.checked) {
+        const already = logs.some(l => l.date === dateStr && l.task === taskTitle && l.brand === brand && l.subtask === subTask);
+        if (!already) {
+            logs.push({
+                date: dateStr,
+                task: taskTitle,
+                brand: brand,
+                subtask: subTask,
+                status: "Ongoing",
+                timestamp: now.toISOString(),
+            });
+            localStorage.setItem("taskLogs", JSON.stringify(logs));
+            showBanner(`Logged "${taskTitle}"`, "info");
+        }
+    } else {
+        logs = logs.filter(l => !(l.date === dateStr && l.task === taskTitle && l.brand === brand && l.subtask === subTask));
+        localStorage.setItem("taskLogs", JSON.stringify(logs));
+        showBanner(`Removed "${taskTitle}" from logs`, "secondary");
+    }
+    checkLogToggle();
+    updateTemplatePreviews();
+}
+
+function showLogs() {
+    const logsTableContainer = document.getElementById("logsTableContainer");
+    const logStatsContainer = document.getElementById("logStatsContainer");
+    const logs = JSON.parse(localStorage.getItem("taskLogs") || "[]");
+
+    if (!Array.isArray(logs) || logs.length === 0) {
+        logStatsContainer.innerHTML = "";
+        logsTableContainer.innerHTML = `<p class="text-center text-muted mb-0">No logs recorded yet.</p>`;
+        return;
+    }
+
+    let totalLogs = logs.length;
+    let completedLogs = logs.filter(l => l.status === "Completed").length;
+    let ongoingLogs = logs.filter(l => l.status === "Ongoing").length;
+    
+    let brandCounts = {};
+    let topBrand = "N/A", topCount = 0;
+    logs.forEach(l => {
+        if(l.brand && l.brand !== "None") {
+            brandCounts[l.brand] = (brandCounts[l.brand] || 0) + 1;
+            if(brandCounts[l.brand] > topCount) {
+                topCount = brandCounts[l.brand];
+                topBrand = l.brand;
+            }
+        }
+    });
+
+    logStatsContainer.innerHTML = `
+        <div class="col-md-3 mb-2">
+            <div class="p-2 bg-primary bg-opacity-10 border border-primary border-opacity-25 rounded shadow-sm">
+                <h5 class="text-primary mb-0 fw-bold">${totalLogs}</h5>
+                <span class="text-muted fw-bold" style="font-size: 0.75rem;">Total Logged</span>
+            </div>
+        </div>
+        <div class="col-md-3 mb-2">
+            <div class="p-2 bg-success bg-opacity-10 border border-success border-opacity-25 rounded shadow-sm">
+                <h5 class="text-success mb-0 fw-bold">${completedLogs}</h5>
+                <span class="text-muted fw-bold" style="font-size: 0.75rem;">Completed</span>
+            </div>
+        </div>
+        <div class="col-md-3 mb-2">
+            <div class="p-2 bg-warning bg-opacity-10 border border-warning border-opacity-25 rounded shadow-sm">
+                <h5 class="text-warning mb-0 fw-bold">${ongoingLogs}</h5>
+                <span class="text-muted fw-bold" style="font-size: 0.75rem;">Ongoing</span>
+            </div>
+        </div>
+        <div class="col-md-3 mb-2">
+            <div class="p-2 bg-info bg-opacity-10 border border-info border-opacity-25 rounded shadow-sm">
+                <h5 class="text-info mb-0 fw-bold text-truncate" title="${topBrand}">${topBrand}</h5>
+                <span class="text-muted fw-bold" style="font-size: 0.75rem;">Top Brand</span>
+            </div>
+        </div>
+    `;
+
+    let html = `
+      <table class="table table-striped align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Date</th>
+            <th>Brand</th>
+            <th>Category</th>
+            <th>Task Name</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    logs.forEach((log, index) => {
+        const currentStatus = log.status || "";
+        const isCustom = currentStatus && !["Completed", "Ongoing"].includes(currentStatus);
+
+        html += `
+          <tr>
+            <td class="small">${log.date || "N/A"}</td>
+            <td><span class="badge bg-secondary">${log.brand || "N/A"}</span></td>
+            <td class="small">${log.subtask || "N/A"}</td>
+            <td class="fw-medium">${log.task || "N/A"}</td>
+            <td><span class="badge ${currentStatus === 'Completed' ? 'bg-success' : currentStatus === 'Ongoing' ? 'bg-warning text-dark' : 'bg-info'}">${log.status || "N/A"}</span></td>
+            <td>
+              <div class="d-flex flex-wrap gap-2 align-items-center">
+                <button type="button" class="btn btn-sm btn-success" onclick="updateLogStatus(${index}, 'Completed')"><i class="bi bi-check2"></i></button>
+                <button type="button" class="btn btn-sm btn-warning" onclick="updateLogStatus(${index}, 'Ongoing')"><i class="bi bi-hourglass"></i></button>
+                <div class="d-flex align-items-center flex-grow-1" style="max-width: 150px;">
+                  <input type="text" class="form-control form-control-sm me-1" id="customInput-${index}" placeholder="Custom..." value="${isCustom ? currentStatus : ''}" oninput="toggleSubmitButton(${index})">
+                  <button id="submitBtn-${index}" class="btn btn-sm btn-primary" style="display:${isCustom ? 'inline-block' : 'none'}" onclick="submitCustomStatus(${index})">Set</button>
+                </div>
+              </div>
+            </td>
+          </tr>
+        `;
+    });
+
+    html += "</tbody></table>";
+    logsTableContainer.innerHTML = html;
+}
+
+function toggleSubmitButton(index) {
+    const input = document.getElementById(`customInput-${index}`);
+    const btn = document.getElementById(`submitBtn-${index}`);
+    btn.style.display = input.value.trim() ? "inline-block" : "none";
+}
+
+function submitCustomStatus(index) {
+    const input = document.getElementById(`customInput-${index}`);
+    const logs = JSON.parse(localStorage.getItem("taskLogs") || "[]");
+    if (!logs[index]) return;
+    logs[index].status = input.value.trim();
+    localStorage.setItem("taskLogs", JSON.stringify(logs));
+    showBanner("Status saved!", "success");
+    showLogs();
+}
+
+function updateLogStatus(index, newStatus) {
+    const logs = JSON.parse(localStorage.getItem("taskLogs") || "[]");
+    if (!logs[index]) return;
+    logs[index].status = newStatus;
+    localStorage.setItem("taskLogs", JSON.stringify(logs));
+    showBanner(`Marked as ${newStatus}!`, newStatus === "Completed" ? "success" : "warning");
+    showLogs();
+}
+
+function generateWorkLog() {
+    const logs = JSON.parse(localStorage.getItem("taskLogs") || "[]");
+    if (logs.length === 0) {
+        showBanner("No logs to generate.", "warning");
+        return;
+    }
+
+    const reportDate = logs[0].date || new Date().toISOString().split("T")[0];
+    const headers = ["Brand", "Task Category", "Task Name", "Status"];
+
+    const rows = logs.map(l => {
+        const escape = (txt) => `"${(txt || "").replace(/"/g, '""')}"`;
+        return `${escape(l.brand)},${escape(l.subtask)},${escape(l.task)},${escape(l.status)}`;
+    });
+
+    const csvContent = `Date: ${reportDate}\n` + [headers.join(","), ...rows].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    
+    link.setAttribute("href", url);
+    link.setAttribute("download", `DailyReport_${reportDate}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    localStorage.removeItem("taskLogs");
+    showBanner("Work log downloaded and cleared!", "success");
+    checkLogToggle(); 
+    
+    const modalEl = document.getElementById("logsModal");
+    const modalObj = bootstrap.Modal.getInstance(modalEl);
+    if(modalObj) modalObj.hide();
+}
+document.getElementById("generateLogBtn")?.addEventListener("click", generateWorkLog);
+
+function showBanner(message, type="success") {
+    const toastContainer = document.getElementById("toastContainer");
+    let bgClass = type === "info" ? "bg-primary text-white" : type === "warning" ? "bg-warning text-dark" : type === "secondary" ? "bg-secondary text-white" : "bg-success text-white";
+    let closeBtnClass = type === "warning" ? "" : "btn-close-white";
+    
+    const toastEl = document.createElement("div");
+    toastEl.className = `toast align-items-center border-0 ${bgClass} shadow-lg mb-2`;
+    toastEl.setAttribute("role", "alert");
+    toastEl.setAttribute("aria-live", "assertive");
+    toastEl.setAttribute("aria-atomic", "true");
+    
+    toastEl.innerHTML = `
+      <div class="d-flex">
+        <div class="toast-body fw-bold">${message}</div>
+        <button type="button" class="btn-close ${closeBtnClass} me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+    `;
+    
+    toastContainer.appendChild(toastEl);
+    const toast = new bootstrap.Toast(toastEl, { delay: 3500 });
+    toast.show();
+    toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+}
+
+function updateLastUpdated(){
+    document.getElementById("lastUpdated").innerText = `Ready`;
+}
+
+// ==========================================
+// --- SECRET GAMES & CURSOR FX (Preserved) ---
+// ==========================================
+function openGameMenu() { document.getElementById("gameMenuContainer").style.display = "flex"; }
+function closeGameMenu() { document.getElementById("gameMenuContainer").style.display = "none"; }
+
+/* --- MAZE LOGIC --- */
+const allMazeMaps=[["11111111111111111111","12000000110000000001","11111100110011111101","10000000110011000001","10111111110011001111","10110000000000000001","10110011111111111101","10000011000000001101","11111111001111000031","11111111111111111111"],["11111111111111111111","12000000000000000001","10111111111111111101","10100000000000000101","10101111111111110101","10101300000000010101","10101111111111110101","10100000000000000101","10111111111111111101","11111111111111111111"],["11111111111111111111","12000110000000111111","11110110111110111111","11110000111110111111","11111111111110111111","11111110000000111111","11111110111111111111","11111110111111110031","11111110000000000011","11111111111111111111"],["11111111111111111111","12011111111111111111","11011111111111111111","11000111111000000111","11110111111011110111","11110000000011110111","11111111111111110111","11111111111111110031","11111111111111111111","11111111111111111111"],["11111111111111111111","12001100110011001101","11101101110111011101","10000000000000000001","10111011101110111011","10111011101110111011","10000000000000000001","11011101110111011101","11001100110011001131","11111111111111111111"]];
+let mazeActive=false,mazeState='waiting',mazeHearts=3,currentMazeLevel=0,selectedMazeIndices=[],currentMap=null,mazeCellW=0,mazeCellH=0,mazeLastX=-1000,mazeLastY=-1000;
+const mCanvas=document.getElementById('mazeCanvas'),mCtx=mCanvas.getContext('2d');
+function startMazeGame(){closeGameMenu();let indices=[0,1,2,3,4];for(let i=indices.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[indices[i],indices[j]]=[indices[j],indices[i]];}selectedMazeIndices=indices.slice(0,3);mazeHearts=3;currentMazeLevel=0;document.getElementById('mazeHearts').innerText="❤️❤️❤️";document.getElementById('mazeContainer').style.display="block";mazeActive=true;mazeLastX=mouse.x;mazeLastY=mouse.y;loadMazeLevel();}
+function stopMazeGame(){mazeActive=false;document.getElementById('mazeContainer').style.display="none";}
+function loadMazeLevel(){currentMap=allMazeMaps[selectedMazeIndices[currentMazeLevel]];drawMazeStatic();document.getElementById('mazeLevel').innerText=currentMazeLevel+1;mazeState='waiting';const msg=document.getElementById('mazeMessage');msg.innerText="Move to the Green START Area!";msg.style.color="white";msg.style.opacity="1";}
+function drawMazeStatic(){mCanvas.width=window.innerWidth;mCanvas.height=window.innerHeight;mazeCellW=mCanvas.width/20;mazeCellH=mCanvas.height/10;mCtx.clearRect(0,0,mCanvas.width,mCanvas.height);for(let r=0;r<10;r++){for(let c=0;c<20;c++){const type=currentMap[r][c];if(type==='1'){mCtx.fillStyle='#1a1d20';mCtx.strokeStyle='#0dcaf0';mCtx.lineWidth=2;mCtx.fillRect(c*mazeCellW,r*mazeCellH,mazeCellW,mazeCellH);mCtx.strokeRect(c*mazeCellW,r*mazeCellH,mazeCellW,mazeCellH);}else if(type==='2'){mCtx.fillStyle='rgba(25, 135, 84, 0.7)';mCtx.fillRect(c*mazeCellW,r*mazeCellH,mazeCellW,mazeCellH);mCtx.fillStyle='#fff';mCtx.font="bold 20px Arial";mCtx.textAlign="center";mCtx.fillText("START",c*mazeCellW+mazeCellW/2,r*mazeCellH+mazeCellH/2+7);}else if(type==='3'){mCtx.fillStyle='rgba(255, 193, 7, 0.7)';mCtx.fillRect(c*mazeCellW,r*mazeCellH,mazeCellW,mazeCellH);mCtx.fillStyle='#fff';mCtx.font="bold 20px Arial";mCtx.textAlign="center";mCtx.fillText("END",c*mazeCellW+mazeCellW/2,r*mazeCellH+mazeCellH/2+7);}}}}
+function loseMazeHeart(){mazeHearts--;document.getElementById('mazeHearts').innerText="❤️".repeat(mazeHearts)+"🖤".repeat(3-mazeHearts);const msg=document.getElementById('mazeMessage');msg.style.opacity="1";if(mazeHearts<=0){mazeActive=false;msg.innerText="💀 GAME OVER 💀";msg.style.color="#dc3545";setTimeout(stopMazeGame,2000);}else{mazeState='waiting';msg.innerText="Ouch! Move back to the START zone.";msg.style.color="#dc3545";}}
+function winMazeLevel(){mazeState='waiting';currentMazeLevel++;const msg=document.getElementById('mazeMessage');msg.style.opacity="1";if(currentMazeLevel>=3){mazeActive=false;msg.innerText="🎉 YOU ESCAPED! 🎉";msg.style.color="#198754";setTimeout(stopMazeGame,3000);}else{msg.innerText="Good Job! Loading next level...";msg.style.color="#20c997";setTimeout(()=>{loadMazeLevel();},1500);}}
+
+/* --- BRICK LOGIC --- */
+const bCanvas=document.getElementById('brickCanvas'),bCtx=bCanvas.getContext('2d');
+let brickActive=false,bReqId,bScore=0,bLives=3,bBall={x:0,y:0,dx:6,dy:-6,radius:10},bPaddle={w:120,h:15,x:0},bBricks=[],bCols=10,bRows=6,bPowerUps=[];
+const POWERUP_TYPES=['expand','shrink','slow','life'];
+function startBrickGame(){closeGameMenu();brickActive=true;bScore=0;bLives=3;document.getElementById('brickContainer').style.display="block";document.getElementById('brickMessage').style.display="none";updateBrickUI();initBrickLevel();drawBrickGame();}
+function stopBrickGame(){brickActive=false;cancelAnimationFrame(bReqId);document.getElementById('brickContainer').style.display="none";}
+function initBrickLevel(){bCanvas.width=window.innerWidth;bCanvas.height=window.innerHeight;bBall.x=bCanvas.width/2;bBall.y=bCanvas.height-60;bBall.dx=(Math.random()>0.5?6:-6);bBall.dy=-6;bPaddle.w=120;bPaddle.x=(bCanvas.width-bPaddle.w)/2;bPowerUps=[];let totalPadding=(bCols+1)*15;let brickW=(bCanvas.width-totalPadding)/bCols;let brickH=30;bBricks=[];for(let c=0;c<bCols;c++){bBricks[c]=[];for(let r=0;r<bRows;r++){let bX=(c*(brickW+15))+15;let bY=(r*(brickH+15))+60;let bType=1;if(r===0&&c%3===0)bType=-1;else if(r===1||(r===2&&c%2===0))bType=2;bBricks[c][r]={x:bX,y:bY,status:bType,w:brickW,h:brickH};}}}
+function updateBrickUI(){document.getElementById('brickScore').innerText=bScore;document.getElementById('brickLives').innerText="❤️".repeat(Math.min(5,bLives))+(bLives<3?"🖤".repeat(3-bLives):"");}
+function spawnPowerUp(x,y){if(Math.random()<0.25){const type=POWERUP_TYPES[Math.floor(Math.random()*POWERUP_TYPES.length)];let icon="⭐";if(type==='expand')icon="↔️";if(type==='shrink')icon="><";if(type==='slow')icon="🐢";if(type==='life')icon="❤️";bPowerUps.push({x:x,y:y,type:type,icon:icon,dy:3});}}
+function applyPowerUp(type){if(type==='expand')bPaddle.w=Math.min(bPaddle.w+40,300);if(type==='shrink')bPaddle.w=Math.max(bPaddle.w-30,60);if(type==='life'){bLives++;updateBrickUI();}if(type==='slow'){let speed=Math.hypot(bBall.dx,bBall.dy);if(speed>5){bBall.dx*=0.8;bBall.dy*=0.8;}}}
+function drawBrickGame(){if(!brickActive)return;bCtx.clearRect(0,0,bCanvas.width,bCanvas.height);for(let c=0;c<bCols;c++){for(let r=0;r<bRows;r++){let b=bBricks[c][r];if(b.status!==0){if(b.status===-1)bCtx.fillStyle="#6c757d";else if(b.status===2)bCtx.fillStyle="#fd7e14";else bCtx.fillStyle=`hsl(${(c*30+r*15)}, 100%, 60%)`;bCtx.fillRect(b.x,b.y,b.w,b.h);bCtx.strokeStyle="rgba(255,255,255,0.3)";bCtx.strokeRect(b.x,b.y,b.w,b.h);}}}for(let i=bPowerUps.length-1;i>=0;i--){let p=bPowerUps[i];p.y+=p.dy;bCtx.font="24px Arial";bCtx.textAlign="center";bCtx.fillText(p.icon,p.x,p.y);if(p.y>bCanvas.height-20-bPaddle.h&&p.x>bPaddle.x&&p.x<bPaddle.x+bPaddle.w){applyPowerUp(p.type);bPowerUps.splice(i,1);}else if(p.y>bCanvas.height){bPowerUps.splice(i,1);}}bCtx.fillStyle="#0dcaf0";bCtx.shadowColor="#0dcaf0";bCtx.shadowBlur=10;bCtx.fillRect(bPaddle.x,bCanvas.height-bPaddle.h-20,bPaddle.w,bPaddle.h);bCtx.shadowBlur=0;bCtx.beginPath();bCtx.arc(bBall.x,bBall.y,bBall.radius,0,Math.PI*2);bCtx.fillStyle="#ffc107";bCtx.fill();bCtx.closePath();if(bBall.x+bBall.dx>bCanvas.width-bBall.radius||bBall.x+bBall.dx<bBall.radius)bBall.dx=-bBall.dx;if(bBall.y+bBall.dy<bBall.radius)bBall.dy=-bBall.dy;else if(bBall.y+bBall.dy>bCanvas.height-bBall.radius-20-bPaddle.h){if(bBall.x>bPaddle.x&&bBall.x<bPaddle.x+bPaddle.w){bBall.dy=-Math.abs(bBall.dy);let hitPoint=bBall.x-(bPaddle.x+bPaddle.w/2);bBall.dx=hitPoint*0.15;let speed=Math.hypot(bBall.dx,bBall.dy);if(speed<12){bBall.dx*=1.05;bBall.dy*=1.05;}}else if(bBall.y+bBall.dy>bCanvas.height-bBall.radius){bLives--;bPowerUps=[];updateBrickUI();if(!bLives){document.getElementById('brickMessage').innerText="GAME OVER";document.getElementById('brickMessage').style.display="block";setTimeout(stopBrickGame,2500);return;}else{bBall.x=bCanvas.width/2;bBall.y=bCanvas.height-60;bBall.dx=(Math.random()>0.5?6:-6);bBall.dy=-6;bPaddle.w=120;bPaddle.x=(bCanvas.width-bPaddle.w)/2;}}}let totalBreakableBricks=0;for(let c=0;c<bCols;c++){for(let r=0;r<bRows;r++){let b=bBricks[c][r];if(b.status>0)totalBreakableBricks++;if(b.status!==0){if(bBall.x>b.x&&bBall.x<b.x+b.w&&bBall.y>b.y&&bBall.y<b.y+b.h){bBall.dy=-bBall.dy;if(b.status>0){b.status--;if(b.status===0){bScore+=10;spawnPowerUp(b.x+b.w/2,b.y+b.h);}else bScore+=5;updateBrickUI();}}}}}if(totalBreakableBricks===0){document.getElementById('brickMessage').innerText="YOU WIN!";document.getElementById('brickMessage').style.display="block";setTimeout(stopBrickGame,2500);return;}bBall.x+=bBall.dx;bBall.y+=bBall.dy;bReqId=requestAnimationFrame(drawBrickGame);}
+
+/* --- CURSOR FX --- */
+const canvas=document.getElementById('cursorCanvas'),ctx=canvas.getContext('2d');
+canvas.width=window.innerWidth;canvas.height=window.innerHeight;
+const trail=[];const trailLength=45;let hue=200,mouse={x:-1000,y:-1000},isMoving=false,fadeOut=0,moveTimeout;
+for(let i=0;i<trailLength;i++)trail.push({x:mouse.x,y:mouse.y});
+window.addEventListener('resize',()=>{canvas.width=window.innerWidth;canvas.height=window.innerHeight;if(mazeActive)drawMazeStatic();if(brickActive)initBrickLevel();});
+window.addEventListener('mousemove',(event)=>{mouse.x=event.clientX;mouse.y=event.clientY;isMoving=true;fadeOut=1;clearTimeout(moveTimeout);moveTimeout=setTimeout(()=>{isMoving=false;},50);if(brickActive){let relativeX=mouse.x;if(relativeX>0&&relativeX<window.innerWidth)bPaddle.x=relativeX-bPaddle.w/2;}if(mazeActive){if(mazeLastX!==-1000){const dist=Math.hypot(mouse.x-mazeLastX,mouse.y-mazeLastY);const steps=Math.max(1,Math.floor(dist/5));for(let i=1;i<=steps;i++){const cx=mazeLastX+(mouse.x-mazeLastX)*(i/steps),cy=mazeLastY+(mouse.y-mazeLastY)*(i/steps),col=Math.floor(cx/mazeCellW),row=Math.floor(cy/mazeCellH);if(row>=0&&row<10&&col>=0&&col<20){const cell=currentMap[row][col];if(mazeState==='waiting'&&cell==='2'){mazeState='playing';document.getElementById('mazeMessage').innerText="Reach the Gold Exit!";document.getElementById('mazeMessage').style.color="#ffc107";document.getElementById('mazeMessage').style.opacity="0.2";}else if(mazeState==='playing'){if(cell==='1'){loseMazeHeart();break;}else if(cell==='3'){winMazeLevel();break;}}}}}mazeLastX=mouse.x;mazeLastY=mouse.y;}});
+function animateLine(){ctx.clearRect(0,0,canvas.width,canvas.height);if(!isMoving)fadeOut=Math.max(0,fadeOut-0.08);trail[0].x=mouse.x;trail[0].y=mouse.y;const speed=0.85;for(let i=1;i<trailLength;i++){trail[i].x+=(trail[i-1].x-trail[i].x)*speed;trail[i].y+=(trail[i-1].y-trail[i].y)*speed;}if(fadeOut>0){for(let i=trailLength-1;i>0;i--){const p1=trail[i],p2=trail[i-1];ctx.beginPath();ctx.moveTo(p1.x,p1.y);ctx.lineTo(p2.x,p2.y);const size=((trailLength-i)/trailLength)*15,alpha=((trailLength-i)/trailLength)*fadeOut;ctx.strokeStyle=`hsla(${hue-i}, 100%, 60%, ${alpha})`;ctx.lineWidth=size;ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke();}}hue+=3;requestAnimationFrame(animateLine);}
+animateLine();
+</script>
+</body>
+</html>
