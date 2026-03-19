@@ -287,6 +287,14 @@ body {
         <i class="bi bi-list-task position-absolute end-0 bottom-0 text-secondary opacity-25" style="font-size: 6rem; margin-right: -10px; margin-bottom: -20px; pointer-events: none;"></i>
     </div>
 
+    <div id="pinnedTasksSection" class="mb-4" style="display: none;">
+        <label class="form-label fw-bold small text-muted text-uppercase mb-2">
+            <i class="bi bi-pin-angle-fill text-warning me-1"></i> Pinned Workflows
+        </label>
+        <div id="pinnedTasksContainer" class="d-flex flex-wrap gap-2">
+            </div>
+    </div>
+
     <div class="row g-3 mb-4">
         
         <div class="col-md-4">
@@ -331,6 +339,10 @@ body {
           <span class="slider"></span>
         </label>
         <span class="fw-bold text-secondary" id="workingLabel">Log this Task?</span>
+        
+        <button class="btn btn-sm btn-outline-warning shadow-sm fw-bold ms-auto" onclick="pinCurrentTask()" title="Save Brand, Category, and Task Name to top">
+            <i class="bi bi-star-fill"></i> Pin to Top
+        </button>
     </div>
 
     <h5 class="fw-bold mb-3">Templates <small class="text-muted fw-normal fs-6">(Click to copy)</small></h5>
@@ -346,7 +358,7 @@ body {
         <h1 class="display-6 fw-bold mb-3">Exclusive Task Generator</h1>
         <p class="text-muted fs-5">A standalone utility designed for rapid task naming, automated clipboard formatting, and generating end-of-day workflow reports.</p>
         
-        <div class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill mt-2" onclick="openGameMenu()" style="cursor:crosshair;" title="Secret Arcade">✨ Version 3.3.0</div>
+        <div class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill mt-2" onclick="openGameMenu()" style="cursor:crosshair;" title="Secret Arcade">✨ Version 3.4.0</div>
       </div>
       
       <div class="row justify-content-center g-4 text-center">
@@ -448,6 +460,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initDarkMode();
     initTaskGenerator();
     updateLastUpdated();
+    renderPinnedTasks(); // Initialize pinned items on load
     
     document.getElementById("aboutBtn").addEventListener("click", showAbout);
     document.getElementById("viewLogsBtn").addEventListener("click", () => {
@@ -979,6 +992,94 @@ function showBanner(message, type="success") {
 
 function updateLastUpdated(){
     document.getElementById("lastUpdated").innerText = `Ready`;
+}
+
+// ==========================================
+// --- PINNED / SAVED TASKS LOGIC ---
+// ==========================================
+
+function renderPinnedTasks() {
+    const pinned = JSON.parse(localStorage.getItem("pinnedTasks") || "[]");
+    const section = document.getElementById("pinnedTasksSection");
+    const container = document.getElementById("pinnedTasksContainer");
+
+    if (pinned.length === 0) {
+        section.style.display = "none";
+        return;
+    }
+
+    section.style.display = "block";
+    container.innerHTML = pinned.map(task => `
+        <div class="btn-group shadow-sm" role="group">
+            <button type="button" class="btn btn-sm btn-light border-secondary text-start d-flex flex-column align-items-start px-3" onclick="loadPinnedTask(${task.id})" style="max-width: 220px;" title="Click to resume workflow">
+                <span class="badge bg-primary mb-1">${task.brand === "None" ? "No Brand" : task.brand} | ${task.category}</span>
+                <span class="text-truncate w-100 fw-bold" style="font-size: 0.85rem;">${task.taskName}</span>
+            </button>
+            <button type="button" class="btn btn-sm btn-success border-secondary" title="Mark as completed & remove" onclick="removePinnedTask(${task.id})">
+                <i class="bi bi-check-lg fw-bold"></i>
+            </button>
+        </div>
+    `).join("");
+}
+
+function pinCurrentTask() {
+    const brand = document.getElementById("brandSelect").value;
+    const category = document.getElementById("categorySelect").value;
+    const taskName = document.getElementById("taskNameInput").value.trim();
+
+    if (!taskName) {
+        showBanner("Please enter a Task Name before pinning.", "warning");
+        return;
+    }
+
+    let pinned = JSON.parse(localStorage.getItem("pinnedTasks") || "[]");
+    
+    // Check if exactly identical task is already pinned
+    const exists = pinned.some(t => t.brand === brand && t.category === category && t.taskName === taskName);
+    if (exists) {
+        showBanner("This exact workflow is already pinned.", "info");
+        return;
+    }
+
+    const newTask = {
+        id: Date.now(), // Generate a unique ID
+        brand: brand,
+        category: category,
+        taskName: taskName
+    };
+
+    pinned.push(newTask);
+    localStorage.setItem("pinnedTasks", JSON.stringify(pinned));
+    renderPinnedTasks();
+    showBanner("Workflow pinned to the top!", "success");
+}
+
+function removePinnedTask(id) {
+    let pinned = JSON.parse(localStorage.getItem("pinnedTasks") || "[]");
+    pinned = pinned.filter(t => t.id !== id);
+    localStorage.setItem("pinnedTasks", JSON.stringify(pinned));
+    renderPinnedTasks();
+    showBanner("Workflow completed and removed from pins.", "secondary");
+}
+
+function loadPinnedTask(id) {
+    const pinned = JSON.parse(localStorage.getItem("pinnedTasks") || "[]");
+    const task = pinned.find(t => t.id === id);
+    
+    if (task) {
+        // Load the values into inputs
+        document.getElementById("brandSelect").value = task.brand;
+        document.getElementById("brandDropdownText").textContent = task.brand;
+        
+        document.getElementById("categorySelect").value = task.category;
+        document.getElementById("categoryDropdownText").textContent = task.category;
+        
+        document.getElementById("taskNameInput").value = task.taskName;
+
+        // Force UI updates
+        checkLogToggle();
+        updateTemplatePreviews();
+    }
 }
 
 // ==========================================
