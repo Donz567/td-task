@@ -485,12 +485,12 @@ body {
 
   <div id="filterBar">
     <div class="search-container">
-        <input type="text" id="searchBar" class="form-control" placeholder="Search tasks by name, folder, tags, or status...">
+        <input type="text" id="searchBar" class="form-control" placeholder="Search tasks by name, brand, tags, or status...">
         
         <select id="sortSelect" class="form-select w-auto fw-bold text-secondary">
             <option value="newest">Sort: Newest First</option>
             <option value="oldest">Sort: Oldest First</option>
-            <option value="brand">Sort: Folder Name (A-Z)</option>
+            <option value="brand">Sort: Brand Name (A-Z)</option>
             <option value="status">Sort: Status</option>
         </select>
     </div>
@@ -779,17 +779,21 @@ async function fetchTasks() {
             const rawDate = obj._safeGet(["DateCreated", "CreatedDate", "Date", "DateAssigned", "DueDate", "Start"]);
             obj._dateParsed = parseSheetDate(rawDate);
             
+            // Allow tracking Date Completed silently
+            const rawCompletedDate = obj._safeGet(["DateCompleted", "CompletedDate", "Completed"]);
+            obj._completedDateParsed = parseSheetDate(rawCompletedDate);
+            
             const rawAssignees = obj._safeGet(["Assignees", "Assignee", "Agent", "Agents", "AssignedTo"]);
             let agentsAssigned = rawAssignees.split(",").map(a => a.trim()).filter(a => a);
             
             if (agentsAssigned.length === 0) agentsAssigned = ["Unassigned"];
 
+            // *** FIX: ADDED MISSING 'BRAND NAME' & 'TASK URL' ALIASES ***
             obj["Task Name"] = obj._safeGet(["TaskName", "Task", "Name"]) || "Untitled Task";
-            obj["Folder Name"] = obj._safeGet(["FolderName", "Folder", "Brand"]) || "No Folder";
+            obj["Folder Name"] = obj._safeGet(["BrandName", "Brand", "FolderName", "Folder"]) || "No Brand";
             obj["List Name"] = obj._safeGet(["ListName", "List", "SubTask"]) || "No List";
             obj["Status"] = obj._safeGet(["Status", "TaskStatus", "State"]) || "No Status";
             obj["Tags"] = obj._safeGet(["Tags", "Tag", "Label"]) || "None";
-            
             obj["Click Up Link"] = obj._safeGet(["TaskURL", "URL", "Link", "ClickUpLink", "ClickUp"]) || "#";
 
             return agentsAssigned.map(agent => {
@@ -1031,6 +1035,7 @@ function renderTasks(taskArray){
     paginated.forEach(t => {
         const status = (t["Status"]||"").toLowerCase();
         const clickUpLink = t["Click Up Link"];
+        // Keeping internal map naming consistent but utilizing the updated data stream
         const folderName = t["Folder Name"];
         
         const checkFolder = folderName.toLowerCase();
@@ -1444,7 +1449,7 @@ function showLogs() {
       <div class="col-md-3 mb-2">
           <div class="p-2 bg-info bg-opacity-10 border border-info border-opacity-25 rounded shadow-sm">
               <h5 class="text-info mb-0 fw-bold text-truncate" title="${topFolder}">${topFolder}</h5>
-              <span class="text-muted fw-bold" style="font-size: 0.75rem;">Top Folder</span>
+              <span class="text-muted fw-bold" style="font-size: 0.75rem;">Top Brand</span>
           </div>
       </div>
   `;
@@ -1454,7 +1459,7 @@ function showLogs() {
       <thead class="table-light">
         <tr>
           <th>Date</th>
-          <th>Folder Name</th>
+          <th>Brand Name</th>
           <th>List Name</th> <th>Task Name</th> <th>Status</th>
           <th>Action</th>
         </tr>
@@ -1607,7 +1612,7 @@ function generateWorkLog() {
 
   const reportDate = logs[0].date || new Date().toISOString().split("T")[0];
 
-  const headers = ["Folder Name", "List Name", "Task Name", "Status"];
+  const headers = ["Brand Name", "List Name", "Task Name", "Status"];
 
   const rows = logs.map(l => {
     const folder = toProperCase(l.folder || "");
