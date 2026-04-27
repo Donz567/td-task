@@ -167,12 +167,13 @@ body {
 
 /* --- DYNAMIC STATUS COLORS --- */
 .status-complete { background: #bcddc9 !important; color: #1a1a1a !important; }
-.status-ongoing, .status-ongoing-upload, .status-in-progress, .status-uploading-on-amazon-tg-wmt { background: #d9eafd !important; color: #1a1a1a !important; }
+.status-ongoing, .status-ongoing-upload, .status-in-progress, .status-uploading-on-amazon-tg-wmt, .status-ongoing-analysis, .status-ongoing-ff-creation, .status-uploading-ff { background: #d9eafd !important; color: #1a1a1a !important; }
 .status-cancelled { background: #fdd9d9 !important; color: #1a1a1a !important; }
 .status-assigned, .status-assigned-to-upload, .status-assigned-to-listings { background: #f5f5d9 !important; color: #1a1a1a !important; }
-.status-pending, .status-queued, .status-waiting-s-coxs-feedback { background: #fff3cd !important; color: #856404 !important; }
-.status-team-edits { background: #e0cffc !important; color: #2e1065 !important; }
+.status-pending, .status-queued, .status-waiting-s-coxs-feedback, .status-awaiting-additional-assets, .status-waiting-to-reflect, .status-awaiting-details, .status-on-hold { background: #fff3cd !important; color: #856404 !important; }
+.status-team-edits, .status-for-audit { background: #e0cffc !important; color: #2e1065 !important; }
 .status-to-do { background: #e2e3e5 !important; color: #383d41 !important; }
+.status-case-sent { background: #cfe2ff !important; color: #084298 !important; }
 
 .clickup-btn {
     display: block;
@@ -377,12 +378,13 @@ body {
 [data-bs-theme="dark"] .filter-btn.active { background: #0d6efd; color: #fff; border-color: #0d6efd; }
 [data-bs-theme="dark"] #taskDetail, [data-bs-theme="dark"] #aboutSection, [data-bs-theme="dark"] .detail-header { background: #1e1e1e; color: #eee; }
 [data-bs-theme="dark"] .status-complete { background: #198754 !important; color: #fff !important; }
-[data-bs-theme="dark"] .status-ongoing, [data-bs-theme="dark"] .status-ongoing-upload, [data-bs-theme="dark"] .status-in-progress, [data-bs-theme="dark"] .status-uploading-on-amazon-tg-wmt { background: #0d6efd !important; color: #fff !important; }
+[data-bs-theme="dark"] .status-ongoing, [data-bs-theme="dark"] .status-ongoing-upload, [data-bs-theme="dark"] .status-in-progress, [data-bs-theme="dark"] .status-uploading-on-amazon-tg-wmt, [data-bs-theme="dark"] .status-ongoing-analysis, [data-bs-theme="dark"] .status-ongoing-ff-creation, [data-bs-theme="dark"] .status-uploading-ff { background: #0d6efd !important; color: #fff !important; }
 [data-bs-theme="dark"] .status-cancelled { background: #dc3545 !important; color: #fff !important; }
 [data-bs-theme="dark"] .status-assigned, [data-bs-theme="dark"] .status-assigned-to-upload, [data-bs-theme="dark"] .status-assigned-to-listings { background: #6c757d !important; color: #fff !important; }
-[data-bs-theme="dark"] .status-pending, [data-bs-theme="dark"] .status-queued, [data-bs-theme="dark"] .status-waiting-s-coxs-feedback { background: #ffc107 !important; color: #000 !important; }
-[data-bs-theme="dark"] .status-team-edits { background: #6f42c1 !important; color: #fff !important; }
+[data-bs-theme="dark"] .status-pending, [data-bs-theme="dark"] .status-queued, [data-bs-theme="dark"] .status-waiting-s-coxs-feedback, [data-bs-theme="dark"] .status-awaiting-additional-assets, [data-bs-theme="dark"] .status-waiting-to-reflect, [data-bs-theme="dark"] .status-awaiting-details, [data-bs-theme="dark"] .status-on-hold { background: #ffc107 !important; color: #000 !important; }
+[data-bs-theme="dark"] .status-team-edits, [data-bs-theme="dark"] .status-for-audit { background: #6f42c1 !important; color: #fff !important; }
 [data-bs-theme="dark"] .status-to-do { background: #495057 !important; color: #fff !important; }
+[data-bs-theme="dark"] .status-case-sent { background: #0dcaf0 !important; color: #000 !important; }
 [data-bs-theme="dark"] .label-task-text, [data-bs-theme="dark"] .label-subtask-text, [data-bs-theme="dark"] .label-brand-text { color: #000; }
 [data-bs-theme="dark"] .task-item { background-color: #2d2d2d !important; color: #eee; border-color: #444 !important; }
 
@@ -570,7 +572,7 @@ let agents = new Set();
 let sbsSet = new Set();
 let currentPage = 1;
 let lastTaskCount = 0;  
-let newTaskCount = 0;     
+let newTaskCount = 0;      
 let lastScrollPosition = 0; 
 
 // Filter & Sort State
@@ -579,12 +581,15 @@ let currentSort = "newest";
 
 const tasksPerPage = 20;
 
-// Unique Statuses
+// Unique Statuses Updated
 const uniqueStatuses = [
     "assigned to upload", "complete", "uploading on amazon/tg/wmt", 
     "cancelled", "waiting s.cox’s feedback", "team edits", "in progress", 
     "assigned to listings", "ongoing upload", "ongoing", "to do", 
-    "pending", "assigned", "queued"
+    "pending", "assigned", "queued",
+    "ongoing analysis", "ongoing ff creation", "awaiting additional assets",
+    "for audit", "uploading ff", "waiting to reflect", "case sent",
+    "awaiting details", "on hold"
 ];
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -1096,12 +1101,12 @@ function renderTasks(taskArray){
 }
 
 function getBackgroundIcon(status) {
-  if(status.includes("ongoing") || status.includes("progress")) return `<i class="bi bi-hourglass-split task-bg-icon text-primary"></i>`;
-  if(status.includes("pending") || status.includes("waiting")) return `<i class="bi bi-hourglass task-bg-icon text-warning"></i>`;
+  if(status.includes("ongoing") || status.includes("progress") || status.includes("audit")) return `<i class="bi bi-hourglass-split task-bg-icon text-primary"></i>`;
+  if(status.includes("pending") || status.includes("waiting") || status.includes("awaiting") || status.includes("hold")) return `<i class="bi bi-hourglass task-bg-icon text-warning"></i>`;
   if(status === "complete") return `<i class="bi bi-check2-circle task-bg-icon text-success"></i>`;
   if(status === "cancelled") return `<i class="bi bi-slash-circle task-bg-icon text-danger"></i>`;
   if(status.includes("assigned") || status.includes("queued")) return `<i class="bi bi-person-workspace task-bg-icon text-secondary"></i>`;
-  if(status.includes("uploading")) return `<i class="bi bi-cloud-arrow-up task-bg-icon text-info"></i>`;
+  if(status.includes("uploading") || status.includes("sent")) return `<i class="bi bi-cloud-arrow-up task-bg-icon text-info"></i>`;
   
   return ``;
 }
