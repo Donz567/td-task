@@ -1085,7 +1085,7 @@ function renderTasks(taskArray){
                   </div>
                 </div>
 
-                <a href="${clickUpLink}" target="_blank" class="clickup-btn">
+                <a href="${clickUpLink}" target="clickup_tab" class="clickup-btn">
                   <i class="bi bi-link-45deg"></i> ClickUp Link
                 </a>
 
@@ -1208,7 +1208,7 @@ function showDetail(task) {
         <span class="text-muted"><i class="bi bi-calendar-event"></i> ${dateAssigned}</span>
         
         ${clickUpLink !== "#" 
-            ? `<a href="${clickUpLink}" target="_blank" class="badge bg-info text-dark text-decoration-none ms-2 px-2 border border-info rounded-pill"><i class="bi bi-link-45deg"></i> Open ClickUp</a>` 
+            ? `<a href="${clickUpLink}" target="clickup_tab" class="badge bg-info text-dark text-decoration-none ms-2 px-2 border border-info rounded-pill"><i class="bi bi-link-45deg"></i> Open ClickUp</a>` 
             : `<span class="badge bg-light text-muted ms-2 px-2 border rounded-pill"><i class="bi bi-link-45deg"></i> No Link Found</span>`
         }
     </div>
