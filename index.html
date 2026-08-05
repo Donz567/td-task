@@ -127,17 +127,17 @@ body {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-    gap: 0px; /* Removed the extra gap causing the double spacing */
+    gap: 0px; 
 }
 .task-info {
     font-size: 0.85rem;
     display: flex;
-    align-items: center; /* Centers the icon with the badge perfectly */
+    align-items: center; 
     gap: 6px;
-    margin-bottom: 2px; /* Very tight spacing between the rows */
+    margin-bottom: 2px; 
 }
 .task-info i {
-    margin-top: 0; /* Ensures the icon doesn't push down */
+    margin-top: 0; 
     min-width: 16px;
     text-align: center;
 }
@@ -146,9 +146,9 @@ body {
 }
 
 .status-badge {
-    padding: 4px 10px; /* Added more padding for breathing room */
+    padding: 4px 10px; 
     border-radius: 8px;
-    font-size: 0.85rem; /* Increased from 0.8rem */
+    font-size: 0.85rem; 
     font-weight: 600;
     display: inline-block;
 }
@@ -255,9 +255,9 @@ body {
 #taskList { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px,1fr)); gap: 1rem; }
 
 .label-badge {
-    padding: 3px 8px; /* Added more padding */
+    padding: 3px 8px; 
     border-radius: 8px;
-    font-size: 0.85rem; /* Increased from 0.75rem */
+    font-size: 0.85rem; 
     font-weight: 600;
     display: inline-block;
     color: #1a1a1a;
@@ -823,6 +823,10 @@ async function fetchTasks() {
             obj["Task Name"] = obj._safeGet(["TaskName", "Task", "Name"]) || "Untitled Task";
             obj["Folder Name"] = obj._safeGet(["BrandName", "Brand", "FolderName", "Folder"]) || "No Brand";
             obj["List Name"] = obj._safeGet(["ListName", "List", "SubTask"]) || "No List";
+            
+            // Ensure we grab Task Type strictly mapping it
+            obj["Task Type"] = obj._safeGet(["TaskType", "Type"]) || obj["List Name"];
+
             obj["Status"] = obj._safeGet(["Status", "TaskStatus", "State"]) || "No Status";
             obj["Tags"] = obj._safeGet(["Tags", "Tag", "Label"]) || "None";
             obj["Click Up Link"] = obj._safeGet(["TaskURL", "URL", "Link", "ClickUpLink", "ClickUp"]) || "#";
@@ -1374,34 +1378,70 @@ function showDetail(task) {
     checkLogToggle();
 }
 
-function toggleLog(toggleEl) {
-  const taskTitle = document.getElementById("detailTitle")?.textContent?.trim() || "Unknown Task";
-  const folderName = document.getElementById("detailFolder")?.textContent?.trim() || "Unknown Folder";
-  const listName = document.querySelector("#taskDetail .label-subtask-text")?.textContent?.trim() || "N/A";
-
-  const now = new Date();
-  const dateStr = now.toISOString().split("T")[0];
-
-  let logs = JSON.parse(localStorage.getItem("exclusiveTM_taskLogs") || "[]");
-
-  if (toggleEl.checked) {
-    const already = logs.some(l => l.date === dateStr && l.task === taskTitle && l.folder === folderName);
-    if (!already) {
-      logs.push({
-        date: dateStr,
-        task: taskTitle,
-        folder: folderName,
-        listname: listName,
-        timestamp: now.toISOString(),
-      });
-      localStorage.setItem("exclusiveTM_taskLogs", JSON.stringify(logs));
-      showBanner(`Logged "${taskTitle}"`, "info");
+// --- Calculate Shift Date (8PM - 5AM) ---
+function getShiftDate() {
+    const now = new Date();
+    const hour = now.getHours();
+    
+    // If it's before 5:00 AM, count it as yesterday's shift
+    if (hour < 5) {
+        now.setDate(now.getDate() - 1);
     }
-  } else {
-    logs = logs.filter(l => !(l.date === dateStr && l.task === taskTitle && l.folder === folderName));
+    
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    const y = now.getFullYear();
+    return `${m}/${d}/${y}`; // Matches typical Excel/Sheets format
+}
+
+// --- Save Notes without refreshing the UI ---
+function updateLogNote(index, value) {
+    const logs = JSON.parse(localStorage.getItem("exclusiveTM_taskLogs") || "[]");
+    if (!logs[index]) return;
+    logs[index].notes = value;
     localStorage.setItem("exclusiveTM_taskLogs", JSON.stringify(logs));
-    showBanner(`Removed "${taskTitle}"`, "secondary");
-  }
+}
+
+function toggleLog(toggleEl) {
+    const taskTitle = document.getElementById("detailTitle")?.textContent?.trim() || "Unknown Task";
+    const folderName = document.getElementById("detailFolder")?.textContent?.trim() || "Unknown Folder";
+
+    // Find the full task object to grab all details
+    const task = tasks.find(t => t["Task Name"] === taskTitle && (t["Folder Name"]||"").toLowerCase() === folderName.toLowerCase());
+
+    const now = new Date();
+    const dateStr = now.toISOString().split("T")[0];
+
+    let logs = JSON.parse(localStorage.getItem("exclusiveTM_taskLogs") || "[]");
+
+    if (toggleEl.checked) {
+        const already = logs.some(l => l.date === dateStr && l.task === taskTitle && l.folder === folderName);
+        if (!already) {
+            logs.push({
+                date: dateStr, 
+                shiftDate: getShiftDate(),
+                taskType: task ? (task["Task Type"] || "") : "",     
+                taskCategory: task ? (task["List Name"] || "") : "", 
+                subTask: task ? (task["Tags"] || "") : "",           
+                brand: folderName,                                   
+                dateRequested: task ? formatDate(task._dateParsed) : dateStr, 
+                taskName: taskTitle,                                 
+                status: task ? toProperCase(task["Status"]) : "Ongoing", // Pull real status at creation
+                dateStarted: getShiftDate(),                         
+                completedDate: task && task._completedDateParsed ? formatDate(task._completedDateParsed) : "", // Pull real completion date
+                notes: "",
+                bcLink: task ? (task["Click Up Link"] || "") : "",   
+                folder: folderName, 
+                task: taskTitle     
+            });
+            localStorage.setItem("exclusiveTM_taskLogs", JSON.stringify(logs));
+            showBanner(`Logged "${taskTitle}"`, "info");
+        }
+    } else {
+        logs = logs.filter(l => !(l.date === dateStr && l.task === taskTitle && l.folder === folderName));
+        localStorage.setItem("exclusiveTM_taskLogs", JSON.stringify(logs));
+        showBanner(`Removed "${taskTitle}"`, "secondary");
+    }
 }
 
 function checkLogToggle() {
@@ -1446,10 +1486,38 @@ function checkLogToggle() {
 
 document.getElementById("viewLogsBtn")?.addEventListener("click", showLogs);
 
+// Central function to auto-sync logged tasks with the LIVE Google Sheet data
+function syncLogsWithLiveTasks() {
+    let logs = JSON.parse(localStorage.getItem("exclusiveTM_taskLogs") || "[]");
+    
+    logs.forEach(l => {
+        // Find matching task from live data
+        const currentTask = tasks.find(t => t["Task Name"] === l.task && (t["Folder Name"] || "").toLowerCase() === l.folder.toLowerCase());
+        
+        if (currentTask) {
+            // Update to exactly what the Google sheet says right now
+            l.status = toProperCase(currentTask["Status"] || "");
+            
+            // If the sheet marks it as Complete, capture the completion date from the sheet
+            if (l.status === "Complete" || l.status === "Completed") {
+                l.completedDate = currentTask._completedDateParsed ? formatDate(currentTask._completedDateParsed) : l.shiftDate;
+            } else {
+                l.completedDate = "";
+            }
+        }
+    });
+    
+    localStorage.setItem("exclusiveTM_taskLogs", JSON.stringify(logs));
+    return logs;
+}
+
+
 function showLogs() {
   const logsTableContainer = document.getElementById("logsTableContainer");
   const logStatsContainer = document.getElementById("logStatsContainer");
-  const logs = JSON.parse(localStorage.getItem("exclusiveTM_taskLogs") || "[]");
+  
+  // ALWAYS auto-sync the logs with the live Google Sheet before rendering
+  const logs = syncLogsWithLiveTasks();
 
   if (!Array.isArray(logs) || logs.length === 0) {
     logStatsContainer.innerHTML = "";
@@ -1501,14 +1569,16 @@ function showLogs() {
       </div>
   `;
 
+  // Notice: The "Action" Column Header has been removed
   let html = `
     <table class="table table-striped align-middle">
       <thead class="table-light">
         <tr>
-          <th>Date</th>
-          <th>Brand Name</th>
-          <th>List Name</th> <th>Task Name</th> <th>Status</th>
-          <th>Action</th>
+          <th>Shift Date</th>
+          <th>Brand</th>
+          <th>Task Name</th>
+          <th>Status</th>
+          <th style="width: 35%;">Notes / Progress</th>
         </tr>
       </thead>
       <tbody>
@@ -1516,40 +1586,16 @@ function showLogs() {
 
   logs.forEach((log, index) => {
     const currentStatus = log.status || "";
-    const isCustom =
-      currentStatus &&
-      !["Complete", "Ongoing"].includes(currentStatus);
+    const displayDate = log.shiftDate || log.date || "N/A";
 
     html += `
       <tr>
-        <td>${log.date || "N/A"}</td>
-        <td><span class="badge bg-secondary">${log.folder || "N/A"}</span></td>
-        <td>${log.listname || "N/A"}</td>
-        <td>${log.task || "N/A"}</td>
+        <td><span class="badge bg-dark">${displayDate}</span></td>
+        <td><span class="badge bg-secondary">${log.brand || log.folder || "N/A"}</span></td>
+        <td><div class="text-truncate" style="max-width: 180px;" title="${log.taskName || log.task}">${log.taskName || log.task || "N/A"}</div></td>
         <td><span class="badge ${currentStatus === 'Complete' ? 'bg-success' : currentStatus === 'Ongoing' ? 'bg-warning text-dark' : 'bg-info'}">${log.status || "N/A"}</span></td>
         <td>
-          <div class="d-flex flex-wrap gap-2 align-items-center">
-            <button type="button" class="btn btn-sm btn-success" onclick="updateLogStatus(${index}, 'Complete')">Complete</button>
-            <button type="button" class="btn btn-sm btn-warning" onclick="updateLogStatus(${index}, 'Ongoing')">Ongoing</button>
-            <div class="d-flex align-items-center flex-grow-1">
-              <input 
-                type="text" 
-                class="form-control form-control-sm me-2" 
-                id="customInput-${index}" 
-                placeholder="Custom status..."
-                value="${isCustom ? currentStatus : ''}"
-                oninput="toggleSubmitButton(${index})"
-              >
-              <button 
-                id="submitBtn-${index}" 
-                class="btn btn-sm btn-primary" 
-                style="display:${isCustom ? 'inline-block' : 'none'}"
-                onclick="submitCustomStatus(${index})"
-              >
-                Submit
-              </button>
-            </div>
-          </div>
+          <input type="text" class="form-control form-control-sm" placeholder="Add note..." value="${log.notes || ''}" onchange="updateLogNote(${index}, this.value)">
         </td>
       </tr>
     `;
@@ -1557,35 +1603,6 @@ function showLogs() {
 
   html += "</tbody></table>";
   logsTableContainer.innerHTML = html;
-}
-
-function toggleSubmitButton(index) {
-  const input = document.getElementById(`customInput-${index}`);
-  const btn = document.getElementById(`submitBtn-${index}`);
-  btn.style.display = input.value.trim() ? "inline-block" : "none";
-}
-
-function submitCustomStatus(index) {
-  const input = document.getElementById(`customInput-${index}`);
-  const logs = JSON.parse(localStorage.getItem("exclusiveTM_taskLogs") || "[]");
-
-  if (!logs[index]) return;
-  logs[index].status = input.value.trim();
-  localStorage.setItem("exclusiveTM_taskLogs", JSON.stringify(logs));
-
-  showBanner("Custom status saved!", "success");
-  showLogs();
-}
-
-function updateLogStatus(index, newStatus) {
-  const logs = JSON.parse(localStorage.getItem("exclusiveTM_taskLogs") || "[]");
-  if (!logs[index]) return;
-
-  logs[index].status = newStatus;
-  localStorage.setItem("exclusiveTM_taskLogs", JSON.stringify(logs));
-
-  showBanner(`Marked as ${newStatus}!`, newStatus === "Complete" ? "success" : "warning");
-  showLogs();
 }
 
 document.getElementById("viewLogsBtn").addEventListener("click", () => {
@@ -1650,29 +1667,62 @@ function showBanner(message, type="success") {
     });
 }
 
+// ----------------------------------------------------
+// --- UPDATED CSV GENERATION ---
+// ----------------------------------------------------
 function generateWorkLog() {
-  const logs = JSON.parse(localStorage.getItem("exclusiveTM_taskLogs") || "[]");
+  // Sync the logs right before generating to make sure the CSV has the absolute latest Google Sheet statuses
+  const logs = syncLogsWithLiveTasks();
+  
   if (logs.length === 0) {
     showBanner("No logs to generate.", "warning");
     return;
   }
 
-  const reportDate = logs[0].date || new Date().toISOString().split("T")[0];
-
-  const headers = ["Brand Name", "List Name", "Task Name", "Status"];
+  const headers = [
+      "Shift Date", "Task", "Sub-Task", "Brand", 
+      "Date Requested", "Tasks", "Status", 
+      "Date Started", "Completed Date", "Notes/Update/Progress", "ClickUp Link"
+  ];
 
   const rows = logs.map(l => {
-    const folder = toProperCase(l.folder || "");
-    const listCategory = l.listname || ""; 
-    const taskTitle = l.task || "";        
-    const status = l.status || "";
+    const escape = (txt) => `"${(txt || "").toString().replace(/"/g, '""')}"`;
 
-    const escape = (txt) => `"${txt.replace(/"/g, '""')}"`;
+    // --- SUB-TASK / TASK TYPE LOGIC ---
+    let subTaskStr = l.subTask || ""; 
+    let taskTypeStr = l.taskType || l.taskCategory || ""; 
+    let taskTypeLower = taskTypeStr.toLowerCase();
+    let taskNameLower = (l.taskName || l.task || "").toLowerCase();
 
-    return `${escape(folder)},${escape(listCategory)},${escape(taskTitle)},${escape(status)}`;
+    // 1. Task Name contains A+ or Infographics
+    if (taskNameLower.includes("a+") || taskNameLower.includes("infographics") || taskNameLower.includes("infographic")) {
+        subTaskStr = "Infographics / Premium A+";
+    } 
+    // 2. Task (Task Type) is Correction
+    else if (taskTypeLower.includes("correction")) {
+        subTaskStr = "Listing Concern";
+    } 
+    // 3. Task (Task Type) is Enhancement
+    else if (taskTypeLower.includes("enhancement")) {
+        subTaskStr = "SEO";
+    }
+
+    return [
+      escape(l.shiftDate || l.date),        // Shift Date
+      escape(taskTypeStr),                  // Task (Pulled exactly from the Task Type column)
+      escape(subTaskStr),                   // Sub-Task (Calculated logic)
+      escape(l.brand || l.folder),          // Brand
+      escape(""),                           // Date Requested (Always Blank)
+      escape(l.taskName || l.task),         // Tasks
+      escape(l.status || ""),               // Status dynamically fetched from sheet
+      escape(l.dateStarted || l.shiftDate), // Date Started
+      escape(l.completedDate || ""),        // Completed Date dynamically fetched from sheet
+      escape(l.notes || ""),                // Notes/Update/Progress
+      escape(l.bcLink || "")                // ClickUp Link
+    ].join(",");
   });
 
-  const csvContent = `Date: ${reportDate}\n` + [headers.join(","), ...rows].join("\n");
+  const csvContent = headers.join(",") + "\n" + rows.join("\n");
 
   const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
   const link = document.createElement("a");
