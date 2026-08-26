@@ -7,6 +7,8 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⭐</text></svg>">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+<!-- Vue 3 for Calculator -->
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <style>
 body {
     background-color: #f8fafc;
@@ -56,6 +58,51 @@ body {
 }
 
 .navbar { background: transparent; }
+
+/* --- LEFT FLOATING TOOL NAV --- */
+.left-floating-nav {
+    position: fixed;
+    top: 50%;
+    left: 20px;
+    transform: translateY(-50%);
+    z-index: 1040;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50px;
+    padding: 12px 10px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.left-floating-nav:hover {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.left-nav-btn {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #495057;
+    font-size: 1.3rem;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    background: transparent;
+    border: none;
+}
+
+.left-nav-btn:hover {
+    background: rgba(13, 110, 253, 0.1);
+    color: #0d6efd;
+    transform: scale(1.15);
+}
 
 /* --- FLOATING CONTAINER --- */
 .floating-actions {
@@ -152,6 +199,31 @@ body {
     font-weight: 600;
     display: inline-block;
 }
+
+/* --- PRIORITY BADGES --- */
+.priority-badge {
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-block;
+}
+.priority-urgent { 
+    background: #dc3545 !important; 
+    color: #fff !important; 
+    box-shadow: 0 0 8px rgba(220, 53, 69, 0.6); 
+    animation: urgent-pulse 1.5s infinite; 
+}
+.priority-high { background: #fd7e14 !important; color: #fff !important; }
+.priority-normal { background: #e2e3e5 !important; color: #383d41 !important; }
+.priority-low { background: #20c997 !important; color: #fff !important; }
+
+@keyframes urgent-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
 /* --- WORKING INDICATOR STYLES --- */
 .task-working {
     box-shadow: 0 4px 15px rgba(13, 110, 253, 0.15) !important;
@@ -406,13 +478,402 @@ body {
 [data-bs-theme="dark"] .status-case-sent { background: #0dcaf0 !important; color: #000 !important; }
 [data-bs-theme="dark"] .label-task-text, [data-bs-theme="dark"] .label-subtask-text, [data-bs-theme="dark"] .label-brand-text { color: #000; }
 [data-bs-theme="dark"] .task-item { background-color: #2d2d2d !important; color: #eee; border-color: #444 !important; }
+[data-bs-theme="dark"] .priority-normal { background: #495057 !important; color: #fff !important; }
+
+/* Dark mode for left floating nav */
+[data-bs-theme="dark"] .left-floating-nav { background: rgba(33, 37, 41, 0.85); border-color: rgba(255, 255, 255, 0.1); }
+[data-bs-theme="dark"] .left-nav-btn { color: #e0e0e0; }
+[data-bs-theme="dark"] .left-nav-btn:hover { background: rgba(13, 202, 240, 0.15); color: #0dcaf0; }
 
 /* Menu Hover FX */
 .game-btn { transition: transform 0.2s; }
 .game-btn:hover { transform: scale(1.05); }
+
+/* --- HD IMAGE PROCESSOR CUSTOM STYLES --- */
+.border-dashed-primary { border: 2px dashed #0d6efd; }
+.border-dashed-primary:hover { background-color: rgba(13,110,253,0.05); }
+#imgProc-log::-webkit-scrollbar { width: 6px; }
+#imgProc-log::-webkit-scrollbar-thumb { background-color: #adb5bd; border-radius: 4px; }
+[data-bs-theme="dark"] #imgProc-log { background-color: #212529 !important; color: #adb5bd !important; }
+
+/* --- CALCULATOR CALENDAR GRID --- */
+.calc-grid-7 { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
+
+/* --- DRIVESYNC PRO CUSTOM STYLES --- */
+.ds-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem; }
+.ds-card { aspect-ratio: 1/1; transition: all 0.3s ease; position: relative; }
+.ds-card-img { width: 100%; height: 100%; object-fit: cover; transition: all 0.3s ease; opacity: 0; border-radius: 0.5rem; position: relative; z-index: 10; }
+.ds-card:hover { z-index: 50; }
+.ds-card:hover .ds-card-img { transform: scale(1.5) translateY(-5px); object-fit: contain; background: #fff; box-shadow: 0 1rem 3rem rgba(0,0,0,0.2); padding: 4px; opacity: 1 !important; }
+.ds-card-overlay { opacity: 0; transition: opacity 0.3s ease; }
+.ds-card:hover .ds-card-overlay { opacity: 1; }
+.ds-blink { animation: ds-blinker 1s linear infinite; }
+@keyframes ds-blinker { 50% { opacity: 0; } }
+#ds-log-container::-webkit-scrollbar { width: 4px; }
+#ds-log-container::-webkit-scrollbar-track { background: transparent; }
+#ds-log-container::-webkit-scrollbar-thumb { background: #6c757d; border-radius: 4px; }
+#ds-links-input::-webkit-scrollbar { width: 6px; }
+#ds-links-input::-webkit-scrollbar-track { background: transparent; }
+#ds-links-input::-webkit-scrollbar-thumb { background: #0d6efd; border-radius: 4px; }
+[data-bs-theme="dark"] .ds-card { background-color: #212529 !important; border-color: #495057 !important; }
+[data-bs-theme="dark"] .ds-card:hover .ds-card-img { background: #212529; }
 </style>
 </head>
 <body>
+
+<!-- LEFT FLOATING TOOL NAV -->
+<div class="left-floating-nav">
+    <a href="#" class="left-nav-btn" data-bs-toggle="tooltip" data-bs-placement="right" title="HD Image Processor" onclick="openImageProcessor()">
+        <i class="bi bi-images"></i>
+    </a>
+    <a href="#" class="left-nav-btn" data-bs-toggle="tooltip" data-bs-placement="right" title="Salary Calculator" onclick="openCalculator()">
+        <i class="bi bi-calculator"></i>
+    </a>
+    <a href="#" class="left-nav-btn" data-bs-toggle="tooltip" data-bs-placement="right" title="DriveSync Pro" onclick="openDriveSync()">
+        <i class="bi bi-cloud-arrow-down"></i>
+    </a>
+    <a href="#" class="left-nav-btn" data-bs-toggle="tooltip" data-bs-placement="right" title="Settings">
+        <i class="bi bi-gear"></i>
+    </a>
+</div>
+
+<!-- DRIVESYNC PRO MODAL/OVERLAY -->
+<div id="driveSyncContainer" class="bg-body text-body" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:9050; overflow-y:auto; padding-top:20px; padding-bottom:100px;">
+    <div class="container-fluid" style="max-width: 1400px;">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold m-0"><i class="bi bi-cloud-arrow-down text-primary me-2"></i> DriveSync <span class="text-primary">Pro</span></h2>
+            <button class="btn btn-outline-danger px-4 rounded-pill" onclick="closeDriveSync()">
+                <i class="bi bi-x-lg"></i> Close Tool
+            </button>
+        </div>
+
+        <div class="row g-4 h-100">
+            <!-- LEFT: Input & Controls -->
+            <div class="col-lg-3 d-flex flex-column gap-3">
+                <div class="card shadow-sm border-0 rounded-4 flex-grow-1 d-flex flex-column">
+                    <div class="card-body d-flex flex-column">
+                        <label class="form-label text-muted small fw-bold text-uppercase tracking-widest mb-2" style="font-size: 10px;">Data Input Pipeline</label>
+                        <textarea 
+                            id="ds-links-input" 
+                            placeholder="Ctrl+V (or Cmd+V) here..." 
+                            class="form-control flex-grow-1 border-2 border-primary border-opacity-25 bg-body-tertiary font-monospace"
+                            style="resize: none; min-height: 150px; font-size: 12px; white-space: pre;"
+                        ></textarea>
+                        
+                        <div class="d-flex flex-column gap-2 mt-3">
+                            <button 
+                                id="ds-download-btn"
+                                onclick="ds_startBulkDownload()" 
+                                class="btn btn-primary w-100 fw-bold py-3 shadow-sm text-uppercase"
+                                style="font-size: 11px; letter-spacing: 1px;"
+                            >
+                                <i class="bi bi-cloud-download me-1"></i> Initialize Batch Download
+                            </button>
+                            <button 
+                                id="ds-clear-btn"
+                                onclick="ds_clearWorkspace()" 
+                                class="btn btn-outline-secondary w-100 fw-bold py-2 text-uppercase"
+                                style="font-size: 10px; letter-spacing: 1px;"
+                            >
+                                Clear Workspace
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Terminal -->
+                <div class="card shadow-inner border-0 bg-dark text-light rounded-4" style="min-height: 220px;">
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex justify-content-between border-bottom border-secondary pb-2 mb-2">
+                            <span class="small fw-bold text-uppercase text-secondary" style="font-size: 10px; letter-spacing: 1px;">Terminal_Log</span>
+                            <span class="text-success small fw-bold d-flex align-items-center gap-1" style="font-size: 10px;">
+                                <span class="spinner-grow spinner-grow-sm text-success" style="width: 8px; height: 8px;"></span> Active
+                            </span>
+                        </div>
+                        <div id="ds-log-container" class="flex-grow-1 overflow-auto font-monospace text-secondary" style="font-size: 11px; max-height: 140px;">
+                            <div>> System initialized.</div>
+                        </div>
+                        <div class="text-primary font-monospace mt-2" style="font-size: 11px;">> <span class="ds-blink">█</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: Grid Preview -->
+            <div class="col-lg-9">
+                <div class="card shadow-sm border-0 rounded-4 h-100">
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-end border-bottom pb-3 mb-4">
+                            <div>
+                                <h4 class="fw-bold mb-1">Visual Pipeline Preview</h4>
+                                <p class="text-muted small m-0">Generated previews based on pasted URLs.</p>
+                            </div>
+                            <div class="bg-body-tertiary border px-3 py-2 rounded-3 shadow-sm d-flex align-items-center">
+                                <span class="text-muted small fw-bold text-uppercase me-2" style="font-size: 10px; letter-spacing: 1px;">Total Extracted:</span>
+                                <span id="ds-link-count" class="fs-5 fw-bolder text-primary">0</span>
+                            </div>
+                        </div>
+
+                        <div id="ds-parsed-links-list" class="ds-grid flex-grow-1 align-content-start overflow-auto pe-2 pb-5" style="max-height: 70vh;">
+                            <div class="text-muted small font-monospace fst-italic w-100 text-center py-5" style="grid-column: 1 / -1;">
+                                Awaiting input stream to generate previews...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SALARY CALCULATOR MODAL/OVERLAY -->
+<div id="calculatorContainer" class="bg-body text-body" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:9050; overflow-y:auto; padding-top:20px; padding-bottom:100px;">
+    <div class="container-fluid" style="max-width: 1400px;" id="calcApp">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold m-0"><i class="bi bi-calculator text-primary me-2"></i> Payroll Dashboard</h2>
+            <button class="btn btn-outline-danger px-4 rounded-pill" onclick="closeCalculator()">
+                <i class="bi bi-x-lg"></i> Close Tool
+            </button>
+        </div>
+
+        <div class="row g-4">
+            <!-- LEFT: Dynamic Calendar -->
+            <div class="col-lg-3">
+                <div class="card shadow-sm border-0 rounded-4 h-100">
+                    <div class="card-body">
+                        <h5 class="card-title fw-bold text-center border-bottom pb-3 mb-3">Holidays Calendar</h5>
+                        
+                        <!-- Calendar Header -->
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <button @click="prevMonth" class="btn btn-sm btn-light">&larr;</button>
+                            <span class="fw-bold">{{ currentMonthName }} {{ currentYear }}</span>
+                            <button @click="nextMonth" class="btn btn-sm btn-light">&rarr;</button>
+                        </div>
+
+                        <!-- Calendar Grid -->
+                        <div class="calc-grid-7 text-muted small fw-bold mb-2">
+                            <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
+                        </div>
+                        <div class="calc-grid-7 small">
+                            <div v-for="day in calendarDays" :key="day.id"
+                                 class="p-1 rounded d-flex align-items-center justify-content-center"
+                                 style="height: 32px;"
+                                 :class="{
+                                     'bg-primary text-white fw-bold shadow-sm': day.holiday && day.holiday.type === 'Regular',
+                                     'bg-warning text-dark fw-bold shadow-sm': day.holiday && day.holiday.type === 'Special',
+                                     'text-muted opacity-50': !day.isCurrentMonth,
+                                     'bg-light text-body': !day.holiday && day.isCurrentMonth
+                                 }"
+                                 :title="day.holiday ? day.holiday.name + ' (' + day.holiday.type + ')' : ''"
+                            >
+                                {{ day.date.getDate() }}
+                            </div>
+                        </div>
+
+                        <!-- Legend & Events List -->
+                        <div class="mt-4">
+                            <div class="d-flex justify-content-center gap-3 small mb-3 pb-3 border-bottom">
+                                <div><span class="badge bg-primary me-1">&nbsp;</span> Legal/Regular</div>
+                                <div><span class="badge bg-warning me-1">&nbsp;</span> Special</div>
+                            </div>
+
+                            <div v-if="currentMonthHolidays.length === 0" class="small text-muted text-center fst-italic mt-3">
+                                No holidays this month.
+                            </div>
+                            <div v-else class="d-flex flex-column gap-2 mt-3" style="max-height: 250px; overflow-y: auto;">
+                                <div v-for="h in currentMonthHolidays" :key="h.date" class="p-2 border-start border-4 bg-body-tertiary rounded"
+                                     :class="h.type === 'Regular' ? 'border-primary' : 'border-warning'">
+                                    <div class="fw-bold small">{{ h.dateDisplay }} - {{ h.name }}</div>
+                                    <div class="small" :class="h.type === 'Regular' ? 'text-primary' : 'text-warning'">{{ h.type }} Holiday</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CENTER: Forms -->
+            <div class="col-lg-6">
+                <div class="d-flex flex-column gap-4">
+                    <!-- Earnings & Attendance -->
+                    <div class="card shadow-sm border-0 rounded-4">
+                        <div class="card-body p-4">
+                            <h5 class="card-title fw-bold border-bottom pb-3 mb-4">Earnings & Attendance</h5>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold text-muted">Basic Salary</label>
+                                    <input v-model.number="form.basicSalary" type="number" class="form-control">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold text-muted">Total Days Worked</label>
+                                    <input v-model.number="form.daysWorked" type="number" class="form-control">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold text-muted">Night Differential Mode</label>
+                                    <select v-model="form.ndMode" class="form-select">
+                                        <option value="fixed10">Fixed 10%</option>
+                                        <option value="fixed20">Fixed 20%</option>
+                                        <option value="mixed">Mixed Rates</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold text-primary">De Minimis Input (Monthly)</label>
+                                    <input v-model.number="form.deMinimisInput" type="number" placeholder="e.g. 3200" class="form-control border-primary">
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label small fw-bold text-success">Additional (e.g. OT)</label>
+                                    <input v-model.number="form.additionalPay" type="number" placeholder="Enter amount" class="form-control border-success">
+                                </div>
+                            </div>
+
+                            <div v-if="form.ndMode === 'mixed'" class="row g-3 mt-2 p-3 bg-primary bg-opacity-10 rounded-3 border border-primary border-opacity-25">
+                                <div class="col-6">
+                                    <label class="form-label small fw-bold text-primary">Days at 10% ND</label>
+                                    <input v-model.number="form.nd10Days" type="number" class="form-control form-control-sm">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small fw-bold text-primary">Days at 20% ND</label>
+                                    <input v-model.number="form.nd20Days" type="number" class="form-control form-control-sm">
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mt-2">
+                                <div class="col-md-6">
+                                    <div class="p-3 bg-body-tertiary rounded-3 border">
+                                        <label class="form-label small fw-bold">Legal Holiday Worked?</label>
+                                        <select v-model="form.hasLegal" class="form-select form-select-sm mb-2">
+                                            <option :value="false">No</option>
+                                            <option :value="true">Yes</option>
+                                        </select>
+                                        <input v-if="form.hasLegal" v-model.number="form.legalDays" type="number" placeholder="No. of Holidays" class="form-control form-control-sm">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="p-3 bg-body-tertiary rounded-3 border">
+                                        <label class="form-label small fw-bold">Special Holiday Worked?</label>
+                                        <select v-model="form.hasSpecial" class="form-select form-select-sm mb-2">
+                                            <option :value="false">No</option>
+                                            <option :value="true">Yes</option>
+                                        </select>
+                                        <input v-if="form.hasSpecial" v-model.number="form.specialDays" type="number" placeholder="No. of Holidays" class="form-control form-control-sm">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Government & Deductions -->
+                    <div class="card shadow-sm border-0 rounded-4">
+                        <div class="card-body p-4">
+                            <h5 class="card-title fw-bold border-bottom pb-3 mb-4">Government & Deductions</h5>
+                            <div class="row g-3">
+                                <div class="col-6 col-md-3" v-for="key in ['sss', 'philhealth', 'hdmf', 'leaveDays']" :key="key">
+                                    <label class="form-label small fw-bold text-muted text-uppercase">{{ key === 'leaveDays' ? 'Leave No.' : key }}</label>
+                                    <input v-model.number="form[key]" type="number" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: Calculation Result -->
+            <div class="col-lg-3">
+                <div class="card shadow-sm border-primary border-opacity-25 rounded-4 h-100 position-sticky" style="top: 20px;">
+                    <div class="card-body p-4 d-flex flex-column">
+                        <h5 class="card-title fw-bold text-center border-bottom pb-3 mb-4">Calculation Result</h5>
+                        
+                        <div class="d-flex flex-column gap-2 small flex-grow-1">
+                            <div class="d-flex justify-content-between"><span>Daily Rate:</span><span class="font-monospace">{{ format(perDay) }}</span></div>
+                            <div class="d-flex justify-content-between"><span>Basic Pay:</span><span class="font-monospace">{{ format(basicPay) }}</span></div>
+                            <div class="d-flex justify-content-between"><span>Total ND:</span><span class="font-monospace">{{ format(totalNDAmount) }}</span></div>
+                            <div class="d-flex justify-content-between border-bottom pb-2">
+                                <span class="text-primary fw-bold">De Minimis:</span>
+                                <span class="font-monospace fw-bold">{{ format(deminimisTotal) }}</span>
+                            </div>
+                            
+                            <div v-if="legalPay > 0" class="d-flex justify-content-between text-success"><span>Legal Holiday:</span><span class="font-monospace">+{{ format(legalPay) }}</span></div>
+                            <div v-if="specialPay > 0" class="d-flex justify-content-between text-success"><span>Special Holiday:</span><span class="font-monospace">+{{ format(specialPay) }}</span></div>
+                            <div v-if="form.additionalPay > 0" class="d-flex justify-content-between text-success"><span>Additional:</span><span class="font-monospace">+{{ format(form.additionalPay) }}</span></div>
+                            
+                            <div class="d-flex justify-content-between fw-bold text-body border-bottom border-dark border-opacity-10 pb-2 mt-2 pt-2">
+                                <span>Gross Pay:</span><span>{{ format(grossPay) }}</span>
+                            </div>
+                            
+                            <div class="bg-danger bg-opacity-10 text-danger p-3 rounded-3 border border-danger border-opacity-25 mt-3">
+                                <div class="fw-bold small text-uppercase mb-2 text-danger opacity-75">Deductions Breakdown</div>
+                                <div class="d-flex justify-content-between small mb-1"><span>Gov't Contribs:</span><span>- {{ format(govDeductions) }}</span></div>
+                                
+                                <template v-if="form.leaveDays > 0">
+                                    <div v-if="ndLeaveDeduction > 0" class="d-flex justify-content-between small mb-1"><span>Leave ND:</span><span>- {{ format(ndLeaveDeduction) }}</span></div>
+                                    <div v-if="deminimisLeaveDeduction > 0" class="d-flex justify-content-between small mb-1"><span>Leave De Minimis:</span><span>- {{ format(deminimisLeaveDeduction) }}</span></div>
+                                </template>
+                                
+                                <div class="d-flex justify-content-between fw-bold pt-2 mt-2 border-top border-danger border-opacity-25">
+                                    <span>Total Deductions:</span><span>- {{ format(totalDeductions) }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 p-4 bg-dark text-white rounded-4 text-center shadow">
+                            <p class="small text-uppercase opacity-75 mb-1 tracking-widest">Net Salary</p>
+                            <h3 class="fw-bold m-0">{{ format(netPay) }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- HD IMAGE PROCESSOR MODAL/OVERLAY -->
+<div id="imageProcessorContainer" class="bg-body text-body" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:9050; overflow-y:auto; padding-top:20px; padding-bottom:100px;">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold m-0"><i class="bi bi-images text-primary me-2"></i> HD Image Processor</h2>
+            <button class="btn btn-outline-danger px-4 rounded-pill" onclick="closeImageProcessor()">
+                <i class="bi bi-x-lg"></i> Close Tool
+            </button>
+        </div>
+        
+        <div class="row">
+            <div class="col-lg-4 mb-4">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body d-flex flex-col flex-column">
+                        <h5 class="card-title fw-bold mb-3">Control Panel</h5>
+                        <div class="alert alert-info py-2 shadow-sm border-0">
+                            <strong class="text-primary"><i class="bi bi-cpu"></i> System Active</strong><br>
+                            <small>Format: HD 2000px | White BG</small>
+                        </div>
+                        <div id="imgProc-log" class="bg-light p-3 rounded mb-3 flex-grow-1 border" style="min-height: 250px; overflow-y:auto; font-family:monospace; font-size:12px;">
+                            System Ready. Awaiting instructions...
+                        </div>
+                        <button id="imgProc-processBtn" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm" onclick="imgProc_startProcessing()">
+                            <i class="bi bi-lightning-charge-fill me-1"></i> Launch Batch Process
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-8 mb-4">
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-body">
+                        <label class="form-label fw-bold text-muted text-uppercase" style="font-size:12px;">Global Style Name</label>
+                        <input type="text" id="imgProc-style" class="form-control form-control-lg" placeholder="e.g. Polo_Summer_2026">
+                    </div>
+                </div>
+                
+                <div id="imgProc-variantGrid" class="d-flex flex-wrap gap-3 mb-4">
+                    <!-- Cards will be injected here via JS -->
+                </div>
+                
+                <button class="btn border-dashed-primary text-primary w-100 fw-bold py-3 rounded-3" onclick="imgProc_addVariant()">
+                    <i class="bi bi-plus-circle me-1"></i> Add Color Variant Card
+                </button>
+            </div>
+        </div>
+    </div>
+    <canvas id="imgProc-canvas" style="display:none;"></canvas>
+</div>
 
 <div id="gameMenuContainer" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:9000; background:rgba(20,20,20,0.95); backdrop-filter: blur(10px); flex-direction: column; align-items: center; justify-content: center;">
     <h1 class="text-white mb-5 fw-bold" style="font-size: 3rem; text-shadow: 0 0 20px #0dcaf0;">Select a Game</h1>
@@ -618,6 +1079,10 @@ document.addEventListener("DOMContentLoaded", () => {
     initApp();
     initDarkMode();
     
+    // Initialize Bootstrap tooltips
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+    
     document.getElementById("searchBar").addEventListener("input", () => { currentPage = 1; filterTasks(); });
     document.getElementById("logoutBtn").addEventListener("click", logout);
     document.getElementById("aboutBtn").addEventListener("click", showAbout);
@@ -682,7 +1147,10 @@ async function initApp() {
     setupStatusFilters();
     filterTasks();
     requestNotificationPermission();
+    
     setTimeout(notifyDailyOngoingTasks, 2000); 
+    setTimeout(notifyUrgentUnworkedTasks, 5000); 
+    setInterval(notifyUrgentUnworkedTasks, 4 * 60 * 60 * 1000); 
 }
 
 function requestNotificationPermission() {
@@ -734,6 +1202,59 @@ function notifyDailyOngoingTasks() {
   localStorage.setItem("exclusiveTM_lastOngoingNotify", today);
 }
 
+function notifyUrgentUnworkedTasks() {
+    const loginName = localStorage.getItem("exclusiveTM_agent");
+    if (!loginName) return;
+
+    const todayStr = new Date().toISOString().split("T")[0];
+    const logs = JSON.parse(localStorage.getItem("exclusiveTM_taskLogs") || "[]");
+
+    const urgentUnworked = tasks.filter(t => {
+        if (t["Assignees"] !== loginName) return false;
+        if ((t["Priority"] || "").toLowerCase() !== "urgent") return false;
+        
+        const status = (t["Status"] || "").toLowerCase();
+        if (status === "complete" || status === "completed" || status === "cancelled") return false;
+
+        const checkFolder = (t["Folder Name"] || "").toLowerCase();
+        const checkTitle = t["Task Name"];
+        const isWorking = logs.some(l => l.date === todayStr && l.task === checkTitle && l.folder === checkFolder);
+        
+        return !isWorking; 
+    });
+
+    if (urgentUnworked.length === 0) return;
+
+    const listHtml = urgentUnworked.map(t => {
+        let linkHtml = t["Click Up Link"] !== "#" 
+          ? `<a href="${t["Click Up Link"]}" target="_blank">(ClickUp)</a>` 
+          : "";
+        return `<li><b>${t["Task Name"]}</b> [${t["Folder Name"]}] ${linkHtml}</li>`;
+    }).join("");
+
+    if ("Notification" in window && Notification.permission === "granted") {
+        const message = urgentUnworked.map(t => `- ${t["Task Name"]}`).join("\n");
+        new Notification("🚨 Urgent Tasks Action Required!", {
+            body: `You have ${urgentUnworked.length} urgent task(s) unlogged!\n\n` + message,
+            icon: "https://cdn-icons-png.flaticon.com/512/564/564619.png"
+        });
+    }
+
+    const container = document.createElement("div");
+    container.className = "daily-reminder border-danger shadow-lg";
+    container.style.background = "#fff3cd";
+    container.style.top = "160px"; 
+    container.innerHTML = `
+        <strong class="text-danger"><i class="bi bi-exclamation-triangle-fill"></i> URGENT TASKS UNATTENDED</strong>
+        <div class="text-dark small mt-1">You have <b>${urgentUnworked.length}</b> urgent task(s) that must be done within 24 hours and are not currently logged:</div>
+        <ul class="text-danger mt-2">${listHtml}</ul>
+        <button class="btn btn-sm btn-danger mt-2 w-100 fw-bold shadow-sm">I'll get to work!</button>
+    `;
+    document.body.appendChild(container);
+    container.querySelector("button").onclick = () => container.remove();
+}
+
+
 function parseSheetDate(value) {
     if (!value || value === "N/A") return null;
     
@@ -768,13 +1289,11 @@ async function fetchTasks() {
         let allRawTasks = [];
         let globalIdCounter = 0;
 
-        // Fetch multiple tabs from the Google Sheet and merge them together
         for (const tab of TABS_TO_FETCH) {
             const url = `${SHEET_URL}&sheet=${encodeURIComponent(tab)}`;
             const res = await fetch(url);
             const text = await res.text();
             
-            // Safety check to ensure the tab exists
             if(!text.includes('google.visualization.Query.setResponse')) continue;
 
             const json = JSON.parse(text.substr(47).slice(0, -2));
@@ -824,9 +1343,8 @@ async function fetchTasks() {
             obj["Folder Name"] = obj._safeGet(["BrandName", "Brand", "FolderName", "Folder"]) || "No Brand";
             obj["List Name"] = obj._safeGet(["ListName", "List", "SubTask"]) || "No List";
             
-            // Ensure we grab Task Type strictly mapping it
             obj["Task Type"] = obj._safeGet(["TaskType", "Type"]) || obj["List Name"];
-
+            obj["Priority"] = obj._safeGet(["Priority", "Urgency"]) || "Normal";
             obj["Status"] = obj._safeGet(["Status", "TaskStatus", "State"]) || "No Status";
             obj["Tags"] = obj._safeGet(["Tags", "Tag", "Label"]) || "None";
             obj["Click Up Link"] = obj._safeGet(["TaskURL", "URL", "Link", "ClickUpLink", "ClickUp"]) || "#";
@@ -839,12 +1357,11 @@ async function fetchTasks() {
             });
         });
 
-        // Sort by actual date instead of fetch order
         tasks.sort((a, b) => {
             let dateA = a._dateParsed ? a._dateParsed.getTime() : 0;
             let dateB = b._dateParsed ? b._dateParsed.getTime() : 0;
-            if (dateA === dateB) return b._id - a._id; // Fallback if dates are identical
-            return dateB - dateA; // Newest first
+            if (dateA === dateB) return b._id - a._id;
+            return dateB - dateA;
         });
 
         const loginName = localStorage.getItem("exclusiveTM_agent");
@@ -860,7 +1377,7 @@ async function fetchTasks() {
         updateLastUpdated();
         updateStatusSummary();
     } catch(err) { 
-        console.error("Error fetching tasks. Check sharing permissions and column names.", err); 
+        console.error("Error fetching tasks.", err); 
     }
 }
 
@@ -1088,6 +1605,13 @@ function renderTasks(taskArray){
         const clickUpLink = t["Click Up Link"];
         const folderName = t["Folder Name"];
         
+        const priority = t["Priority"] || "Normal";
+        const isUrgent = priority.toLowerCase().includes("urgent");
+        let priorityClass = "priority-normal";
+        if (isUrgent) priorityClass = "priority-urgent";
+        else if (priority.toLowerCase().includes("high")) priorityClass = "priority-high";
+        else if (priority.toLowerCase().includes("low")) priorityClass = "priority-low";
+        
         const checkFolder = folderName.toLowerCase();
         const checkTitle = t["Task Name"];
         const isWorking = logs.some(l => l.date === todayStr && l.task === checkTitle && l.folder === checkFolder);
@@ -1116,6 +1640,11 @@ function renderTasks(taskArray){
                   <div class="task-info">
                       <i class="bi bi-list-ul text-success"></i>
                       <span class="label-badge label-subtask-text">${t["List Name"]}</span>
+                  </div>
+
+                  <div class="task-info">
+                      <i class="bi bi-exclamation-circle-fill ${isUrgent ? 'text-danger' : 'text-secondary'}"></i>
+                      <span class="priority-badge ${priorityClass}">${toProperCase(priority)}</span>
                   </div>
 
                   <div class="task-info">
@@ -1181,6 +1710,13 @@ function showDetail(task) {
     const dateAssigned = formatDate(task._dateParsed);
     const sbsNote = task["TM's Note"] || "";
     const clickUpLink = task["Click Up Link"];
+    
+    const priority = task["Priority"] || "Normal";
+    const isUrgent = priority.toLowerCase().includes("urgent");
+    let priorityClass = "priority-normal";
+    if (isUrgent) priorityClass = "priority-urgent";
+    else if (priority.toLowerCase().includes("high")) priorityClass = "priority-high";
+    else if (priority.toLowerCase().includes("low")) priorityClass = "priority-low";
     
     const categories = { 
         "Validation": [ "[brand]-validating-data for new supplier", "[brand]-validating-upc list source" ], 
@@ -1250,6 +1786,7 @@ function showDetail(task) {
         <span class="badge bg-warning text-dark">${toProperCase(task["Tags"])}</span>
         <span class="badge bg-success label-subtask-text">${task["List Name"]}</span>
         <span class="badge ${sanitizeStatusClass(status)}">${toProperCase(status)}</span>
+        <span class="badge ${priorityClass}">${toProperCase(priority)}</span>
         ${sbsNote ? `<span class="badge bg-secondary text-white">${sbsNote}</span>` : ""}
         <span class="text-muted"><i class="bi bi-calendar-event"></i> ${dateAssigned}</span>
         
@@ -1378,23 +1915,16 @@ function showDetail(task) {
     checkLogToggle();
 }
 
-// --- Calculate Shift Date (8PM - 5AM) ---
 function getShiftDate() {
     const now = new Date();
     const hour = now.getHours();
-    
-    // If it's before 5:00 AM, count it as yesterday's shift
-    if (hour < 5) {
-        now.setDate(now.getDate() - 1);
-    }
-    
+    if (hour < 5) now.setDate(now.getDate() - 1);
     const m = String(now.getMonth() + 1).padStart(2, '0');
     const d = String(now.getDate()).padStart(2, '0');
     const y = now.getFullYear();
-    return `${m}/${d}/${y}`; // Matches typical Excel/Sheets format
+    return `${m}/${d}/${y}`;
 }
 
-// --- Save Notes without refreshing the UI ---
 function updateLogNote(index, value) {
     const logs = JSON.parse(localStorage.getItem("exclusiveTM_taskLogs") || "[]");
     if (!logs[index]) return;
@@ -1405,13 +1935,10 @@ function updateLogNote(index, value) {
 function toggleLog(toggleEl) {
     const taskTitle = document.getElementById("detailTitle")?.textContent?.trim() || "Unknown Task";
     const folderName = document.getElementById("detailFolder")?.textContent?.trim() || "Unknown Folder";
-
-    // Find the full task object to grab all details
     const task = tasks.find(t => t["Task Name"] === taskTitle && (t["Folder Name"]||"").toLowerCase() === folderName.toLowerCase());
 
     const now = new Date();
     const dateStr = now.toISOString().split("T")[0];
-
     let logs = JSON.parse(localStorage.getItem("exclusiveTM_taskLogs") || "[]");
 
     if (toggleEl.checked) {
@@ -1426,9 +1953,9 @@ function toggleLog(toggleEl) {
                 brand: folderName,                                   
                 dateRequested: task ? formatDate(task._dateParsed) : dateStr, 
                 taskName: taskTitle,                                 
-                status: task ? toProperCase(task["Status"]) : "Ongoing", // Pull real status at creation
+                status: task ? toProperCase(task["Status"]) : "Ongoing", 
                 dateStarted: getShiftDate(),                         
-                completedDate: task && task._completedDateParsed ? formatDate(task._completedDateParsed) : "", // Pull real completion date
+                completedDate: task && task._completedDateParsed ? formatDate(task._completedDateParsed) : "", 
                 notes: "",
                 bcLink: task ? (task["Click Up Link"] || "") : "",   
                 folder: folderName, 
@@ -1486,19 +2013,13 @@ function checkLogToggle() {
 
 document.getElementById("viewLogsBtn")?.addEventListener("click", showLogs);
 
-// Central function to auto-sync logged tasks with the LIVE Google Sheet data
 function syncLogsWithLiveTasks() {
     let logs = JSON.parse(localStorage.getItem("exclusiveTM_taskLogs") || "[]");
     
     logs.forEach(l => {
-        // Find matching task from live data
         const currentTask = tasks.find(t => t["Task Name"] === l.task && (t["Folder Name"] || "").toLowerCase() === l.folder.toLowerCase());
-        
         if (currentTask) {
-            // Update to exactly what the Google sheet says right now
             l.status = toProperCase(currentTask["Status"] || "");
-            
-            // If the sheet marks it as Complete, capture the completion date from the sheet
             if (l.status === "Complete" || l.status === "Completed") {
                 l.completedDate = currentTask._completedDateParsed ? formatDate(currentTask._completedDateParsed) : l.shiftDate;
             } else {
@@ -1511,12 +2032,9 @@ function syncLogsWithLiveTasks() {
     return logs;
 }
 
-
 function showLogs() {
   const logsTableContainer = document.getElementById("logsTableContainer");
   const logStatsContainer = document.getElementById("logStatsContainer");
-  
-  // ALWAYS auto-sync the logs with the live Google Sheet before rendering
   const logs = syncLogsWithLiveTasks();
 
   if (!Array.isArray(logs) || logs.length === 0) {
@@ -1525,7 +2043,6 @@ function showLogs() {
     return;
   }
 
-  // --- LOG STATISTICS DASHBOARD ---
   let totalLogs = logs.length;
   let completedLogs = logs.filter(l => l.status === "Complete" || l.status === "Completed").length;
   let ongoingLogs = logs.filter(l => (l.status || "").toLowerCase().includes("ongoing")).length;
@@ -1569,7 +2086,6 @@ function showLogs() {
       </div>
   `;
 
-  // Notice: The "Action" Column Header has been removed
   let html = `
     <table class="table table-striped align-middle">
       <thead class="table-light">
@@ -1667,11 +2183,7 @@ function showBanner(message, type="success") {
     });
 }
 
-// ----------------------------------------------------
-// --- UPDATED CSV GENERATION ---
-// ----------------------------------------------------
 function generateWorkLog() {
-  // Sync the logs right before generating to make sure the CSV has the absolute latest Google Sheet statuses
   const logs = syncLogsWithLiveTasks();
   
   if (logs.length === 0) {
@@ -1688,37 +2200,31 @@ function generateWorkLog() {
   const rows = logs.map(l => {
     const escape = (txt) => `"${(txt || "").toString().replace(/"/g, '""')}"`;
 
-    // --- SUB-TASK / TASK TYPE LOGIC ---
     let subTaskStr = l.subTask || ""; 
     let taskTypeStr = l.taskType || l.taskCategory || ""; 
     let taskTypeLower = taskTypeStr.toLowerCase();
     let taskNameLower = (l.taskName || l.task || "").toLowerCase();
 
-    // 1. Task Name contains A+ or Infographics
     if (taskNameLower.includes("a+") || taskNameLower.includes("infographics") || taskNameLower.includes("infographic")) {
         subTaskStr = "Infographics / Premium A+";
-    } 
-    // 2. Task (Task Type) is Correction
-    else if (taskTypeLower.includes("correction")) {
+    } else if (taskTypeLower.includes("correction")) {
         subTaskStr = "Listing Concern";
-    } 
-    // 3. Task (Task Type) is Enhancement
-    else if (taskTypeLower.includes("enhancement")) {
+    } else if (taskTypeLower.includes("enhancement")) {
         subTaskStr = "SEO";
     }
 
     return [
-      escape(l.shiftDate || l.date),        // Shift Date
-      escape(taskTypeStr),                  // Task (Pulled exactly from the Task Type column)
-      escape(subTaskStr),                   // Sub-Task (Calculated logic)
-      escape(l.brand || l.folder),          // Brand
-      escape(""),                           // Date Requested (Always Blank)
-      escape(l.taskName || l.task),         // Tasks
-      escape(l.status || ""),               // Status dynamically fetched from sheet
-      escape(l.dateStarted || l.shiftDate), // Date Started
-      escape(l.completedDate || ""),        // Completed Date dynamically fetched from sheet
-      escape(l.notes || ""),                // Notes/Update/Progress
-      escape(l.bcLink || "")                // ClickUp Link
+      escape(l.shiftDate || l.date),        
+      escape(taskTypeStr),                  
+      escape(subTaskStr),                   
+      escape(l.brand || l.folder),          
+      escape(""),                           
+      escape(l.taskName || l.task),         
+      escape(l.status || ""),               
+      escape(l.dateStarted || l.shiftDate), 
+      escape(l.completedDate || ""),        
+      escape(l.notes || ""),                
+      escape(l.bcLink || "")                
     ].join(",");
   });
 
@@ -1763,574 +2269,500 @@ document.addEventListener("visibilitychange", () => {
 });
 
 // ==========================================
-// --- GAME MENU HUB ---
+// --- IMAGE PROCESSOR LOGIC ---
 // ==========================================
-function openGameMenu() {
-    document.getElementById("gameMenuContainer").style.display = "flex";
-}
-
-function closeGameMenu() {
-    document.getElementById("gameMenuContainer").style.display = "none";
-}
-
-// ==========================================
-// --- SECRET MAZE GAME LOGIC ---
-// ==========================================
-const allMazeMaps = [
-    [ // Map 1: The Snake
-        "11111111111111111111",
-        "12000000110000000001",
-        "11111100110011111101",
-        "10000000110011000001",
-        "10111111110011001111",
-        "10110000000000000001",
-        "10110011111111111101",
-        "10000011000000001101",
-        "11111111001111000031",
-        "11111111111111111111"
-    ],
-    [ // Map 2: The Spiral
-        "11111111111111111111",
-        "12000000000000000001",
-        "10111111111111111101",
-        "10100000000000000101",
-        "10101111111111110101",
-        "10101300000000010101",
-        "10101111111111110101",
-        "10100000000000000101",
-        "10111111111111111101",
-        "11111111111111111111"
-    ],
-    [ // Map 3: Split Path
-        "11111111111111111111",
-        "12000110000000111111",
-        "11110110111110111111",
-        "11110000111110111111",
-        "11111111111110111111",
-        "11111110000000111111",
-        "11111110111111111111",
-        "11111110111111110031",
-        "11111110000000000011",
-        "11111111111111111111"
-    ],
-    [ // Map 4: Choke Points
-        "11111111111111111111",
-        "12011111111111111111",
-        "11011111111111111111",
-        "11000111111000000111",
-        "11110111111011110111",
-        "11110000000011110111",
-        "11111111111111110111",
-        "11111111111111110031",
-        "11111111111111111111",
-        "11111111111111111111"
-    ],
-    [ // Map 5: Checkerboard
-        "11111111111111111111",
-        "12001100110011001101",
-        "11101101110111011101",
-        "10000000000000000001",
-        "10111011101110111011",
-        "10111011101110111011",
-        "10000000000000000001",
-        "11011101110111011101",
-        "11001100110011001131",
-        "11111111111111111111"
-    ]
-];
-
-let mazeActive = false;
-let mazeState = 'waiting';
-let mazeHearts = 3;
-let currentMazeLevel = 0;
-let selectedMazeIndices = [];
-let currentMap = null;
-let mazeCellW = 0;
-let mazeCellH = 0;
-let mazeLastX = -1000, mazeLastY = -1000;
-
-const mCanvas = document.getElementById('mazeCanvas');
-const mCtx = mCanvas.getContext('2d');
-
-function startMazeGame() {
-    closeGameMenu();
-    let indices = [0, 1, 2, 3, 4];
-    for (let i = indices.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [indices[i], indices[j]] = [indices[j], indices[i]];
-    }
-    selectedMazeIndices = indices.slice(0, 3);
-    
-    mazeHearts = 3;
-    currentMazeLevel = 0;
-    document.getElementById('mazeHearts').innerText = "❤️❤️❤️";
-    document.getElementById('mazeContainer').style.display = "block";
-    
-    mazeActive = true;
-    mazeLastX = mouse.x;
-    mazeLastY = mouse.y;
-    loadMazeLevel();
-}
-
-function stopMazeGame() {
-    mazeActive = false;
-    document.getElementById('mazeContainer').style.display = "none";
-}
-
-function loadMazeLevel() {
-    currentMap = allMazeMaps[selectedMazeIndices[currentMazeLevel]];
-    drawMazeStatic();
-    
-    document.getElementById('mazeLevel').innerText = currentMazeLevel + 1;
-    mazeState = 'waiting';
-    
-    const msg = document.getElementById('mazeMessage');
-    msg.innerText = "Move to the Green START Area!";
-    msg.style.color = "white";
-    msg.style.opacity = "1";
-}
-
-function drawMazeStatic() {
-    mCanvas.width = window.innerWidth;
-    mCanvas.height = window.innerHeight;
-    mazeCellW = mCanvas.width / 20;
-    mazeCellH = mCanvas.height / 10;
-    
-    mCtx.clearRect(0, 0, mCanvas.width, mCanvas.height);
-    
-    for(let r = 0; r < 10; r++) {
-        for(let c = 0; c < 20; c++) {
-            const type = currentMap[r][c];
-            if(type === '1') { // Wall
-                mCtx.fillStyle = '#1a1d20'; 
-                mCtx.strokeStyle = '#0dcaf0'; 
-                mCtx.lineWidth = 2;
-                mCtx.fillRect(c*mazeCellW, r*mazeCellH, mazeCellW, mazeCellH);
-                mCtx.strokeRect(c*mazeCellW, r*mazeCellH, mazeCellW, mazeCellH);
-            } else if(type === '2') { // Start
-                mCtx.fillStyle = 'rgba(25, 135, 84, 0.7)'; 
-                mCtx.fillRect(c*mazeCellW, r*mazeCellH, mazeCellW, mazeCellH);
-                mCtx.fillStyle = '#fff';
-                mCtx.font = "bold 20px Arial";
-                mCtx.textAlign = "center";
-                mCtx.fillText("START", c*mazeCellW + mazeCellW/2, r*mazeCellH + mazeCellH/2 + 7);
-            } else if(type === '3') { // End
-                mCtx.fillStyle = 'rgba(255, 193, 7, 0.7)'; 
-                mCtx.fillRect(c*mazeCellW, r*mazeCellH, mazeCellW, mazeCellH);
-                mCtx.fillStyle = '#fff';
-                mCtx.font = "bold 20px Arial";
-                mCtx.textAlign = "center";
-                mCtx.fillText("END", c*mazeCellW + mazeCellW/2, r*mazeCellH + mazeCellH/2 + 7);
-            }
-        }
+function openImageProcessor() {
+    document.getElementById('imageProcessorContainer').style.display = 'block';
+    if (document.getElementById('imgProc-variantGrid').children.length === 0) {
+        imgProc_addVariant();
     }
 }
 
-function loseMazeHeart() {
-    mazeHearts--;
-    document.getElementById('mazeHearts').innerText = "❤️".repeat(mazeHearts) + "🖤".repeat(3 - mazeHearts);
+function closeImageProcessor() {
+    document.getElementById('imageProcessorContainer').style.display = 'none';
+}
+
+function imgProc_addVariant() {
+    const grid = document.getElementById('imgProc-variantGrid');
+    const div = document.createElement('div');
+    div.className = 'card shadow-sm border-0 flex-fill';
+    div.style.minWidth = '300px';
+    div.innerHTML = `
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <strong class="text-secondary" style="font-size: 13px;">COLOR VARIANT</strong>
+                <button class="btn-close text-danger" style="font-size: 10px;" onclick="this.parentElement.parentElement.parentElement.remove()"></button>
+            </div>
+            <label class="form-label fw-bold text-muted" style="font-size:12px;">Color Name</label>
+            <input type="text" class="form-control mb-3 imgProc-v-color">
+            <label class="form-label fw-bold text-muted" style="font-size:12px;">Image URLs (One per line)</label>
+            <textarea class="form-control imgProc-v-urls" rows="4" style="resize:none; font-size: 13px; font-family: monospace;"></textarea>
+        </div>
+    `;
+    grid.appendChild(div);
+}
+
+const imgProc_wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+async function imgProc_startProcessing() {
+    const style = document.getElementById('imgProc-style').value.trim();
+    const cards = document.querySelectorAll('#imgProc-variantGrid .card');
+    const log = document.getElementById('imgProc-log');
+    const canvas = document.getElementById('imgProc-canvas');
+    const ctx = canvas.getContext('2d');
+    const size = 2000; canvas.width = size; canvas.height = size;
     
-    const msg = document.getElementById('mazeMessage');
-    msg.style.opacity = "1";
+    if(!style) return alert("Please enter a Global Style Name.");
     
-    if (mazeHearts <= 0) {
-        mazeActive = false;
-        msg.innerText = "💀 GAME OVER 💀";
-        msg.style.color = "#dc3545";
-        setTimeout(stopMazeGame, 2000);
-    } else {
-        mazeState = 'waiting';
-        msg.innerText = "Ouch! Move back to the START zone.";
-        msg.style.color = "#dc3545";
-    }
-}
-
-function winMazeLevel() {
-    mazeState = 'waiting';
-    currentMazeLevel++;
-    const msg = document.getElementById('mazeMessage');
-    msg.style.opacity = "1";
+    log.innerHTML = "<div class='text-primary fw-bold mb-2'>Starting Batch Process...</div>";
     
-    if (currentMazeLevel >= 3) {
-        mazeActive = false;
-        msg.innerText = "🎉 YOU ESCAPED! 🎉";
-        msg.style.color = "#198754";
-        setTimeout(stopMazeGame, 3000);
-    } else {
-        msg.innerText = "Good Job! Loading next level...";
-        msg.style.color = "#20c997";
-        setTimeout(() => { loadMazeLevel(); }, 1500);
-    }
-}
-
-// ==========================================
-// --- BALL VS BRICK GAME LOGIC ---
-// ==========================================
-const bCanvas = document.getElementById('brickCanvas');
-const bCtx = bCanvas.getContext('2d');
-let brickActive = false;
-let bReqId;
-let bScore = 0;
-let bLives = 3;
-
-let bBall = { x: 0, y: 0, dx: 6, dy: -6, radius: 10 };
-let bPaddle = { w: 120, h: 15, x: 0 };
-let bBricks = [];
-let bCols = 10, bRows = 6;
-let bPowerUps = [];
-
-const POWERUP_TYPES = ['expand', 'shrink', 'slow', 'life'];
-
-function startBrickGame() {
-    closeGameMenu();
-    brickActive = true;
-    bScore = 0;
-    bLives = 3;
-    document.getElementById('brickContainer').style.display = "block";
-    document.getElementById('brickMessage').style.display = "none";
-    updateBrickUI();
-    initBrickLevel();
-    drawBrickGame();
-}
-
-function stopBrickGame() {
-    brickActive = false;
-    cancelAnimationFrame(bReqId);
-    document.getElementById('brickContainer').style.display = "none";
-}
-
-function initBrickLevel() {
-    bCanvas.width = window.innerWidth;
-    bCanvas.height = window.innerHeight;
-
-    bBall.x = bCanvas.width / 2;
-    bBall.y = bCanvas.height - 60;
-    bBall.dx = (Math.random() > 0.5 ? 6 : -6);
-    bBall.dy = -6;
-
-    bPaddle.w = 120; // reset size
-    bPaddle.x = (bCanvas.width - bPaddle.w) / 2;
-    
-    bPowerUps = []; // clear powerups
-
-    let totalPadding = (bCols + 1) * 15;
-    let brickW = (bCanvas.width - totalPadding) / bCols;
-    let brickH = 30;
-
-    bBricks = [];
-    for(let c=0; c<bCols; c++) {
-        bBricks[c] = [];
-        for(let r=0; r<bRows; r++) {
-            let bX = (c * (brickW + 15)) + 15;
-            let bY = (r * (brickH + 15)) + 60;
-            
-            // Generate Map Pattern
-            let bType = 1; // Normal (1 hit)
-            if (r === 0 && c % 3 === 0) bType = -1; // Solid
-            else if (r === 1 || (r === 2 && c % 2 === 0)) bType = 2; // Hard (2 hits)
-            
-            bBricks[c][r] = { x: bX, y: bY, status: bType, w: brickW, h: brickH };
-        }
-    }
-}
-
-function updateBrickUI() {
-    document.getElementById('brickScore').innerText = bScore;
-    document.getElementById('brickLives').innerText = "❤️".repeat(Math.min(5, bLives)) + (bLives < 3 ? "🖤".repeat(3 - bLives) : "");
-}
-
-function spawnPowerUp(x, y) {
-    if (Math.random() < 0.25) { // 25% chance
-        const type = POWERUP_TYPES[Math.floor(Math.random() * POWERUP_TYPES.length)];
-        let icon = "⭐";
-        if (type === 'expand') icon = "↔️";
-        if (type === 'shrink') icon = "><";
-        if (type === 'slow') icon = "🐢";
-        if (type === 'life') icon = "❤️";
+    for(const c of cards) {
+        const color = c.querySelector('.imgProc-v-color').value.trim().replace(/\s+/g, '_');
+        const urls = c.querySelector('.imgProc-v-urls').value.split('\n').filter(u => u.trim() !== '');
         
-        bPowerUps.push({ x: x, y: y, type: type, icon: icon, dy: 3 });
-    }
-}
+        if (!color || urls.length === 0) continue;
 
-function applyPowerUp(type) {
-    if (type === 'expand') bPaddle.w = Math.min(bPaddle.w + 40, 300);
-    if (type === 'shrink') bPaddle.w = Math.max(bPaddle.w - 30, 60);
-    if (type === 'life') { bLives++; updateBrickUI(); }
-    if (type === 'slow') {
-        let speed = Math.hypot(bBall.dx, bBall.dy);
-        if (speed > 5) {
-            bBall.dx *= 0.8;
-            bBall.dy *= 0.8;
-        }
-    }
-}
-
-function drawBrickGame() {
-    if(!brickActive) return;
-
-    bCtx.clearRect(0, 0, bCanvas.width, bCanvas.height);
-
-    // Draw Bricks
-    for(let c=0; c<bCols; c++) {
-        for(let r=0; r<bRows; r++) {
-            let b = bBricks[c][r];
-            if(b.status !== 0) {
-                if (b.status === -1) {
-                    bCtx.fillStyle = "#6c757d"; // Gray (Solid)
-                } else if (b.status === 2) {
-                    bCtx.fillStyle = "#fd7e14"; // Orange (Hard)
+        let num = 1;
+        for(const url of urls) {
+            log.innerHTML += `<div class="mb-1 text-muted">> Processing ${color} #${num}...</div>`;
+            log.scrollTop = log.scrollHeight;
+            try {
+                const blob = await imgProc_processImage(url, ctx, size);
+                if(blob) {
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = `${style}_${color}_${num}.jpg`;
+                    a.click();
+                    log.innerHTML += `<div class="mb-1 text-success">> ✅ Saved: ${style}_${color}_${num}.jpg</div>`;
                 } else {
-                    bCtx.fillStyle = `hsl(${(c * 30 + r * 15)}, 100%, 60%)`; // Normal
+                    log.innerHTML += `<div class="mb-1 text-danger">> ❌ Failed to load URL: ${url}</div>`;
                 }
-                
-                bCtx.fillRect(b.x, b.y, b.w, b.h);
-                bCtx.strokeStyle = "rgba(255,255,255,0.3)";
-                bCtx.strokeRect(b.x, b.y, b.w, b.h);
-            }
+            } catch(e) { console.error(e); }
+            
+            await imgProc_wait(500);
+            num++;
+            log.scrollTop = log.scrollHeight;
         }
     }
+    log.innerHTML += "<div class='text-primary fw-bold mt-2'>BATCH COMPLETE!</div>";
+    log.scrollTop = log.scrollHeight;
+}
 
-    // Draw PowerUps
-    for (let i = bPowerUps.length - 1; i >= 0; i--) {
-        let p = bPowerUps[i];
-        p.y += p.dy;
-        bCtx.font = "24px Arial";
-        bCtx.textAlign = "center";
-        bCtx.fillText(p.icon, p.x, p.y);
+function imgProc_processImage(url, ctx, size) {
+    return new Promise((resolve) => {
+        const img = new Image(); 
+        img.crossOrigin = 'anonymous'; // Important for CORS
+        img.onload = () => {
+            // Draw White BG
+            ctx.fillStyle = '#ffffff'; 
+            ctx.fillRect(0, 0, size, size);
+            
+            // Calculate scale to fit inside 2000px without cropping
+            const scale = Math.min(size / img.width, size / img.height);
+            const w = img.width * scale;
+            const h = img.height * scale;
+            
+            // Draw centered
+            ctx.drawImage(img, (size - w)/2, (size - h)/2, w, h);
+            
+            // Convert to JPEG Blob (90% quality)
+            document.getElementById('imgProc-canvas').toBlob(b => resolve(b), 'image/jpeg', 0.9);
+        };
+        img.onerror = () => resolve(null);
+        img.src = url;
+    });
+}
+
+
+// ==========================================
+// --- CALCULATOR LOGIC ---
+// ==========================================
+function openCalculator() {
+    document.getElementById('calculatorContainer').style.display = 'block';
+}
+
+function closeCalculator() {
+    document.getElementById('calculatorContainer').style.display = 'none';
+}
+
+// Vue App for the Calculator
+const { createApp, ref, computed, onMounted, watch } = Vue;
+
+createApp({
+    setup() {
+        const form = ref({
+            basicSalary: 0, 
+            daysWorked: 0,
+            ndMode: 'fixed10', 
+            nd10Days: 0, 
+            nd20Days: 0,
+            deMinimisInput: 3200, 
+            additionalPay: 0,
+            hasLegal: false, 
+            legalDays: 0,
+            hasSpecial: false, 
+            specialDays: 0,
+            sss: 0, 
+            philhealth: 0, 
+            hdmf: 0, 
+            leaveDays: 0
+        });
+
+        // -- Calendar State & Logic --
+        const calendarDate = ref(new Date()); 
         
-        // Paddle Collision for PowerUp
-        if (p.y > bCanvas.height - 20 - bPaddle.h && p.x > bPaddle.x && p.x < bPaddle.x + bPaddle.w) {
-            applyPowerUp(p.type);
-            bPowerUps.splice(i, 1);
-        } else if (p.y > bCanvas.height) {
-            bPowerUps.splice(i, 1); // Missed it
+        const holidays = ref([
+            { date: '2026-01-01', name: "New Year's Day", type: 'Regular' },
+            { date: '2026-02-17', name: 'Chinese New Year', type: 'Special' },
+            { date: '2026-02-24', name: 'Cebu City Charter Day', type: 'Special' },
+            { date: '2026-02-25', name: 'EDSA People Power', type: 'Special' },
+            { date: '2026-04-02', name: 'Maundy Thursday', type: 'Regular' },
+            { date: '2026-04-03', name: 'Good Friday', type: 'Regular' },
+            { date: '2026-04-04', name: 'Black Saturday', type: 'Special' },
+            { date: '2026-04-09', name: 'Araw ng Kagitingan', type: 'Regular' },
+            { date: '2026-05-01', name: 'Labor Day', type: 'Regular' },
+            { date: '2026-06-12', name: 'Independence Day', type: 'Regular' },
+            { date: '2026-08-06', name: 'Cebu Provincial Charter Day', type: 'Special' },
+            { date: '2026-08-21', name: 'Ninoy Aquino Day', type: 'Special' },
+            { date: '2026-08-31', name: 'National Heroes Day', type: 'Regular' },
+            { date: '2026-09-09', name: 'Osmeña Day', type: 'Special' },
+            { date: '2026-11-01', name: "All Saints' Day", type: 'Special' },
+            { date: '2026-11-02', name: "All Souls' Day", type: 'Special' },
+            { date: '2026-11-30', name: 'Bonifacio Day', type: 'Regular' },
+            { date: '2026-12-08', name: 'Feast of the Immaculate Conception', type: 'Special' },
+            { date: '2026-12-24', name: 'Christmas Eve', type: 'Special' },
+            { date: '2026-12-25', name: 'Christmas Day', type: 'Regular' },
+            { date: '2026-12-30', name: 'Rizal Day', type: 'Regular' },
+            { date: '2026-12-31', name: 'Last Day of the Year', type: 'Special' }
+        ]);
+
+        const currentMonthName = computed(() => calendarDate.value.toLocaleString('default', { month: 'long' }));
+        const currentYear = computed(() => calendarDate.value.getFullYear());
+
+        const prevMonth = () => {
+            calendarDate.value = new Date(calendarDate.value.getFullYear(), calendarDate.value.getMonth() - 1, 1);
+        };
+        
+        const nextMonth = () => {
+            calendarDate.value = new Date(calendarDate.value.getFullYear(), calendarDate.value.getMonth() + 1, 1);
+        };
+
+        const calendarDays = computed(() => {
+            const year = calendarDate.value.getFullYear();
+            const month = calendarDate.value.getMonth();
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+
+            const days = [];
+            // Previous month padding
+            for (let i = 0; i < firstDay.getDay(); i++) {
+                days.push({ id: `prev-${i}`, date: new Date(year, month, -firstDay.getDay() + i + 1), isCurrentMonth: false });
+            }
+            // Current month days
+            for (let i = 1; i <= lastDay.getDate(); i++) {
+                const d = new Date(year, month, i);
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                const holiday = holidays.value.find(h => h.date === dateStr);
+                days.push({ id: `curr-${i}`, date: d, isCurrentMonth: true, holiday });
+            }
+            // Next month padding
+            const remaining = 42 - days.length; 
+            for (let i = 1; i <= remaining; i++) {
+                days.push({ id: `next-${i}`, date: new Date(year, month + 1, i), isCurrentMonth: false });
+            }
+            return days;
+        });
+
+        const currentMonthHolidays = computed(() => {
+            return holidays.value.filter(h => {
+                const hDate = new Date(h.date);
+                return hDate.getMonth() === calendarDate.value.getMonth() && hDate.getFullYear() === calendarDate.value.getFullYear();
+            }).map(h => ({
+                ...h,
+                dateDisplay: new Date(h.date).getDate()
+            }));
+        });
+
+        // -- Session Handling --
+        watch(form, (val) => localStorage.setItem('exclusiveTM_payroll_v2', JSON.stringify(val)), { deep: true });
+
+        onMounted(() => {
+            const saved = localStorage.getItem('exclusiveTM_payroll_v2');
+            if (saved) form.value = JSON.parse(saved);
+        });
+
+        // -- Calculation Logic --
+        const perDay = computed(() => (form.value.basicSalary * 12) / 261);
+        const basicPay = computed(() => perDay.value * form.value.daysWorked);
+        
+        const totalNDAmount = computed(() => {
+            if (form.value.ndMode === 'fixed10') return basicPay.value * 0.10;
+            if (form.value.ndMode === 'fixed20') return basicPay.value * 0.20;
+            const part10 = perDay.value * (form.value.nd10Days || 0) * 0.10;
+            const part20 = perDay.value * (form.value.nd20Days || 0) * 0.20;
+            return part10 + part20;
+        });
+
+        const deminimisTotal = computed(() => {
+            const dailyRate = (form.value.deMinimisInput * 12) / 261;
+            const truncatedDaily = Math.floor(dailyRate * 100) / 100;
+            return truncatedDaily * form.value.daysWorked;
+        });
+
+        const legalPay = computed(() => form.value.hasLegal ? (perDay.value * form.value.legalDays) : 0);
+        const specialPay = computed(() => form.value.hasSpecial ? (perDay.value * 0.30 * form.value.specialDays) : 0);
+        
+        const grossPay = computed(() => basicPay.value + totalNDAmount.value + deminimisTotal.value + (legalPay.value || 0) + (specialPay.value || 0) + (form.value.additionalPay || 0));
+        
+        const govDeductions = computed(() => (form.value.sss || 0) + (form.value.philhealth || 0) + (form.value.hdmf || 0));
+        
+        const ndLeaveDeduction = computed(() => {
+            if (form.value.daysWorked > 0 && form.value.leaveDays > 0) {
+                return (totalNDAmount.value / form.value.daysWorked) * form.value.leaveDays;
+            }
+            return 0;
+        });
+
+        const deminimisLeaveDeduction = computed(() => {
+            if (form.value.daysWorked > 0 && form.value.leaveDays > 0) {
+                return (deminimisTotal.value / form.value.daysWorked) * form.value.leaveDays;
+            }
+            return 0;
+        });
+
+        const totalDeductions = computed(() => {
+            return govDeductions.value + ndLeaveDeduction.value + deminimisLeaveDeduction.value;
+        });
+
+        const netPay = computed(() => grossPay.value - totalDeductions.value);
+
+        const format = (val) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(val || 0);
+
+        return { 
+            form, 
+            calendarDays, currentMonthName, currentYear, prevMonth, nextMonth, currentMonthHolidays,
+            perDay, basicPay, totalNDAmount, deminimisTotal, legalPay, specialPay, grossPay, 
+            govDeductions, ndLeaveDeduction, deminimisLeaveDeduction, 
+            totalDeductions, netPay, format 
         }
     }
+}).mount('#calcApp');
 
-    // Draw Paddle
-    bCtx.fillStyle = "#0dcaf0";
-    bCtx.shadowColor = "#0dcaf0";
-    bCtx.shadowBlur = 10;
-    bCtx.fillRect(bPaddle.x, bCanvas.height - bPaddle.h - 20, bPaddle.w, bPaddle.h);
-    bCtx.shadowBlur = 0; // reset
+// ==========================================
+// --- DRIVESYNC PRO LOGIC ---
+// ==========================================
+function openDriveSync() {
+    document.getElementById('driveSyncContainer').style.display = 'block';
+}
 
-    // Draw Ball
-    bCtx.beginPath();
-    bCtx.arc(bBall.x, bBall.y, bBall.radius, 0, Math.PI*2);
-    bCtx.fillStyle = "#ffc107";
-    bCtx.fill();
-    bCtx.closePath();
+function closeDriveSync() {
+    document.getElementById('driveSyncContainer').style.display = 'none';
+}
 
-    // Collision Logic: Walls
-    if(bBall.x + bBall.dx > bCanvas.width - bBall.radius || bBall.x + bBall.dx < bBall.radius) {
-        bBall.dx = -bBall.dx;
-    }
-    if(bBall.y + bBall.dy < bBall.radius) {
-        bBall.dy = -bBall.dy;
-    } else if(bBall.y + bBall.dy > bCanvas.height - bBall.radius - 20 - bPaddle.h) {
-        // Paddle Hit
-        if(bBall.x > bPaddle.x && bBall.x < bPaddle.x + bPaddle.w) {
-            bBall.dy = -Math.abs(bBall.dy); // Force it upwards
-            let hitPoint = bBall.x - (bPaddle.x + bPaddle.w/2);
-            bBall.dx = hitPoint * 0.15;
-            
-            // Gradually speed ball up to make it harder
-            let speed = Math.hypot(bBall.dx, bBall.dy);
-            if (speed < 12) {
-                bBall.dx *= 1.05;
-                bBall.dy *= 1.05;
-            }
-        } else if(bBall.y + bBall.dy > bCanvas.height - bBall.radius) {
-            // Missed
-            bLives--;
-            bPowerUps = []; // Clear falling items
-            updateBrickUI();
-            if(!bLives) {
-                document.getElementById('brickMessage').innerText = "GAME OVER";
-                document.getElementById('brickMessage').style.display = "block";
-                setTimeout(stopBrickGame, 2500);
-                return;
-            } else {
-                bBall.x = bCanvas.width/2;
-                bBall.y = bCanvas.height-60;
-                bBall.dx = (Math.random() > 0.5 ? 6 : -6);
-                bBall.dy = -6;
-                bPaddle.w = 120; // reset paddle on death
-                bPaddle.x = (bCanvas.width-bPaddle.w)/2;
-            }
-        }
-    }
+const DS_GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxBekHOeDnynKWThw-jrXgRHCaEHBFD1300l7uhE2IHNwyQ76opfCpqXfFUKZ1Eb3a_SA/exec";
 
-    // Collision Logic: Bricks
-    let totalBreakableBricks = 0;
-    for(let c=0; c<bCols; c++) {
-        for(let r=0; r<bRows; r++) {
-            let b = bBricks[c][r];
-            if(b.status > 0) totalBreakableBricks++; // Count only breakable bricks
-            
-            if(b.status !== 0) {
-                if(bBall.x > b.x && bBall.x < b.x + b.w && bBall.y > b.y && bBall.y < b.y + b.h) {
-                    bBall.dy = -bBall.dy;
-                    
-                    if (b.status > 0) { // If not solid
-                        b.status--;
-                        if (b.status === 0) {
-                            bScore += 10;
-                            spawnPowerUp(b.x + b.w/2, b.y + b.h);
-                        } else {
-                            bScore += 5; // Hard brick hit
-                        }
-                        updateBrickUI();
-                    }
-                }
-            }
-        }
-    }
+const ds_textarea = document.getElementById('ds-links-input');
+const ds_logContainer = document.getElementById('ds-log-container');
+const ds_parsedLinksList = document.getElementById('ds-parsed-links-list');
+const ds_linkCountDisplay = document.getElementById('ds-link-count');
 
-    if(totalBreakableBricks === 0) {
-        document.getElementById('brickMessage').innerText = "YOU WIN!";
-        document.getElementById('brickMessage').style.display = "block";
-        setTimeout(stopBrickGame, 2500);
+let ds_globalValidIds = []; 
+
+function ds_addLog(message, type = 'info') {
+    const colors = { 
+        info: 'text-secondary', 
+        success: 'text-success', 
+        warning: 'text-warning', 
+        error: 'text-danger', 
+        system: 'text-primary' 
+    };
+    const div = document.createElement('div');
+    div.className = colors[type];
+    div.innerHTML = `> ${message}`;
+    ds_logContainer.appendChild(div);
+    ds_logContainer.scrollTop = ds_logContainer.scrollHeight; 
+}
+
+const ds_sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+function ds_extractFileId(url) {
+    const regex = /(?:\/d\/|id=)([a-zA-Z0-9_-]+)/;
+    const match = url.match(regex);
+    return match ? match[1] : null;
+}
+
+function ds_clearWorkspace() {
+    ds_textarea.value = '';
+    ds_globalValidIds = [];
+    ds_linkCountDisplay.innerText = '0';
+    ds_parsedLinksList.innerHTML = `
+        <div class="text-muted small font-monospace fst-italic w-100 text-center py-5" style="grid-column: 1 / -1;">
+            Awaiting input stream to generate previews...
+        </div>
+    `;
+    ds_addLog('Workspace cleared. Ready for new input stream.', 'system');
+    ds_textarea.focus();
+}
+
+function ds_updateLinkDisplay(links) {
+    ds_parsedLinksList.innerHTML = ''; 
+    ds_globalValidIds = []; 
+    
+    if (links.length === 0) {
+        ds_parsedLinksList.innerHTML = `<div class="text-muted small font-monospace fst-italic w-100 text-center py-5" style="grid-column: 1 / -1;">Awaiting input stream to generate previews...</div>`;
+        ds_linkCountDisplay.innerText = `0`;
         return;
     }
 
-    // Move Ball
-    bBall.x += bBall.dx;
-    bBall.y += bBall.dy;
-
-    bReqId = requestAnimationFrame(drawBrickGame);
-}
-
-// ==========================================
-// --- RESPONSIVE FADING LINE EFFECT ---
-// ==========================================
-const canvas = document.getElementById('cursorCanvas');
-const ctx = canvas.getContext('2d');
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-
-const trail = [];
-const trailLength = 45; // Short snappy tail
-let hue = 200;
-
-let mouse = { x: -1000, y: -1000 };
-let isMoving = false;
-let fadeOut = 0; 
-let moveTimeout;
-
-for (let i = 0; i < trailLength; i++) {
-    trail.push({ x: mouse.x, y: mouse.y });
-}
-
-window.addEventListener('resize', () => {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    if (mazeActive) drawMazeStatic();
-    if (brickActive) initBrickLevel();
-});
-
-window.addEventListener('mousemove', (event) => {
-    mouse.x = event.clientX;
-    mouse.y = event.clientY;
-    
-    isMoving = true;
-    fadeOut = 1; 
-    
-    clearTimeout(moveTimeout);
-    moveTimeout = setTimeout(() => {
-        isMoving = false;
-    }, 50); 
-
-    // Handle Brick Paddle Movement
-    if (brickActive) {
-        let relativeX = mouse.x;
-        if(relativeX > 0 && relativeX < window.innerWidth) {
-            bPaddle.x = relativeX - bPaddle.w/2;
-        }
-    }
-    
-    // --- MAZE COLLISION DETECTION ---
-    if (mazeActive) {
-        // Anti-cheat interpolation check
-        if (mazeLastX !== -1000) {
-            const dist = Math.hypot(mouse.x - mazeLastX, mouse.y - mazeLastY);
-            const steps = Math.max(1, Math.floor(dist / 5)); // Check every 5 pixels between frames
+    links.forEach((link, index) => {
+        const id = ds_extractFileId(link);
+        if (id) {
+            ds_globalValidIds.push(id);
             
-            for(let i = 1; i <= steps; i++) {
-                const cx = mazeLastX + (mouse.x - mazeLastX) * (i/steps);
-                const cy = mazeLastY + (mouse.y - mazeLastY) * (i/steps);
+            const card = document.createElement('div');
+            card.id = `ds-card-${id}`;
+            card.className = "ds-card border rounded-3 position-relative overflow-hidden shadow-sm bg-white d-flex align-items-center justify-content-center";
+            
+            const thumbnailUrl = `https://drive.google.com/thumbnail?id=${id}&sz=w400`;
+
+            card.innerHTML = `
+                <div id="ds-loader-${id}" class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-light z-1">
+                    <div class="spinner-border text-primary spinner-border-sm" role="status"></div>
+                </div>
                 
-                const col = Math.floor(cx / mazeCellW);
-                const row = Math.floor(cy / mazeCellH);
+                <img id="ds-img-${id}" src="${thumbnailUrl}" alt="Drive File" 
+                    class="ds-card-img" 
+                    onload="this.style.opacity='1'; document.getElementById('ds-loader-${id}').classList.add('d-none');" 
+                    onerror="document.getElementById('ds-loader-${id}').innerHTML = '<span class=\\'text-danger font-monospace\\' style=\\'font-size: 10px;\\'>Access Denied</span>'">
                 
-                if(row >= 0 && row < 10 && col >= 0 && col < 20) {
-                    const cell = currentMap[row][col];
-                    
-                    if(mazeState === 'waiting' && cell === '2') {
-                        mazeState = 'playing';
-                        document.getElementById('mazeMessage').innerText = "Reach the Gold Exit!";
-                        document.getElementById('mazeMessage').style.color = "#ffc107";
-                        document.getElementById('mazeMessage').style.opacity = "0.2"; 
+                <div class="position-absolute top-0 start-0 m-2 bg-primary bg-opacity-75 text-white fw-bold rounded shadow-sm z-3" style="font-size: 10px; padding: 2px 6px;">
+                    #${index + 1}
+                </div>
+
+                <div class="ds-card-overlay position-absolute bottom-0 start-0 w-100 bg-dark bg-opacity-75 text-white pt-4 pb-1 px-2 z-3" style="background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);">
+                    <p class="m-0 font-monospace text-truncate" style="font-size: 10px;" title="${id}">ID: ${id}</p>
+                </div>
+            `;
+            ds_parsedLinksList.appendChild(card);
+        }
+    });
+    
+    ds_linkCountDisplay.innerText = `${ds_globalValidIds.length}`;
+    ds_addLog(`Pipeline extracted ${ds_globalValidIds.length} items. Previews loading instantly via native thumbnails.`, 'success');
+}
+
+async function ds_fetchBatchImages(idsArray) {
+    ds_addLog(`Requesting batch preview for ${idsArray.length} items...`, 'system');
+    try {
+        const idsString = idsArray.join(',');
+        const response = await fetch(`${DS_GAS_WEB_APP_URL}?action=preview_batch&ids=${idsString}`);
+        const result = await response.json();
+
+        if (result.success) {
+            const data = result.results;
+            for (const id of idsArray) {
+                const loader = document.getElementById(`ds-loader-${id}`);
+                const imgElement = document.getElementById(`ds-img-${id}`);
+                
+                if (data[id] && data[id].success) {
+                    if(loader) loader.classList.add('d-none');
+                    if(imgElement) {
+                        imgElement.src = data[id].data;
+                        imgElement.classList.remove('d-none');
                     }
-                    else if(mazeState === 'playing') {
-                        if (cell === '1') {
-                            loseMazeHeart();
-                            break; 
-                        } else if (cell === '3') {
-                            winMazeLevel();
-                            break; 
-                        }
-                    }
+                } else {
+                    if(loader) loader.innerHTML = `<span class="text-danger font-monospace" style="font-size: 10px;">Failed</span>`;
                 }
             }
+            ds_addLog(`Batch preview loaded successfully! (1 Execution)`, 'success');
+        } else {
+            ds_addLog(`Batch preview error: ${result.error}`, 'error');
         }
-        mazeLastX = mouse.x;
-        mazeLastY = mouse.y;
+    } catch (error) {
+        ds_addLog(`Network error fetching batch previews.`, 'error');
+        idsArray.forEach(id => {
+            const loader = document.getElementById(`ds-loader-${id}`);
+            if(loader) loader.innerHTML = `<span class="text-danger font-monospace" style="font-size: 10px;">Error</span>`;
+        });
+    }
+}
+
+ds_textarea.addEventListener('input', () => {
+    const rawLinks = ds_textarea.value.split('\n').map(l => l.trim()).filter(l => l !== '' && l.includes('drive.google.com'));
+    ds_updateLinkDisplay(rawLinks);
+});
+
+ds_textarea.addEventListener('paste', (e) => {
+    const htmlData = e.clipboardData.getData('text/html');
+    if (htmlData) {
+        e.preventDefault(); 
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = htmlData;
+        const anchors = tempDiv.querySelectorAll('a');
+        let extractedLinks = [];
+        
+        anchors.forEach(a => {
+            if (a.href && a.href.includes('drive.google.com')) {
+                extractedLinks.push(a.href);
+            }
+        });
+
+        if (extractedLinks.length > 0) {
+            const currentText = ds_textarea.value;
+            const newText = extractedLinks.join('\n');
+            ds_textarea.value = currentText ? currentText + '\n' + newText : newText;
+            
+            ds_textarea.classList.add('bg-primary', 'bg-opacity-10');
+            setTimeout(() => ds_textarea.classList.remove('bg-primary', 'bg-opacity-10'), 1000);
+            
+            ds_addLog(`Smart Paste: Extracted ${extractedLinks.length} URLs.`, 'system');
+            ds_updateLinkDisplay(ds_textarea.value.split('\n').map(l => l.trim()).filter(l => l !== ''));
+        } else {
+            const plainText = e.clipboardData.getData('text/plain');
+            document.execCommand("insertText", false, plainText);
+        }
     }
 });
 
-function animateLine() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+async function ds_startBulkDownload() {
+    const btn = document.getElementById('ds-download-btn');
 
-    if (!isMoving) {
-        fadeOut = Math.max(0, fadeOut - 0.08); 
+    if (ds_globalValidIds.length === 0) { 
+        ds_addLog('Error: No valid IDs found to download.', 'error');
+        return; 
     }
 
-    trail[0].x = mouse.x;
-    trail[0].y = mouse.y;
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> ZIPPING IN CLOUD...`;
+    
+    ds_addLog(`Sending ${ds_globalValidIds.length} files to Google Cloud for compression...`, 'system');
+    
+    try {
+        const idsString = ds_globalValidIds.join(',');
+        const response = await fetch(`${DS_GAS_WEB_APP_URL}?action=zip&ids=${idsString}`);
+        const result = await response.json();
 
-    const speed = 0.85; 
+        if (result.success) {
+            ds_addLog(`SUCCESS: Cloud compressed ${result.count} files!`, 'success');
+            ds_addLog(`Triggering browser download...`, 'system');
 
-    for (let i = 1; i < trailLength; i++) {
-        trail[i].x += (trail[i - 1].x - trail[i].x) * speed;
-        trail[i].y += (trail[i - 1].y - trail[i].y) * speed;
-    }
-
-    if (fadeOut > 0) {
-        for (let i = trailLength - 1; i > 0; i--) {
-            const p1 = trail[i];
-            const p2 = trail[i - 1];
-
-            ctx.beginPath();
-            ctx.moveTo(p1.x, p1.y);
-            ctx.lineTo(p2.x, p2.y);
-            
-            const size = ((trailLength - i) / trailLength) * 15; 
-            const alpha = ((trailLength - i) / trailLength) * fadeOut;
-            
-            ctx.strokeStyle = `hsla(${hue - i}, 100%, 60%, ${alpha})`; 
-            ctx.lineWidth = size;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            ctx.stroke();
+            const downloadUrl = `https://drive.google.com/uc?export=download&id=${result.zipId}`;
+            const tempLink = document.createElement('a');
+            tempLink.href = downloadUrl;
+            document.body.appendChild(tempLink);
+            tempLink.click();
+            document.body.removeChild(tempLink);
+        } else {
+            ds_addLog(`Cloud Error: ${result.error}`, 'error');
         }
+    } catch (error) {
+        ds_addLog(`Network connection to cloud failed.`, 'error');
     }
 
-    hue += 3; 
-    requestAnimationFrame(animateLine);
+    ds_addLog(`PROCESS COMPLETE.`, 'success');
+    btn.disabled = false;
+    btn.innerHTML = `<i class="bi bi-cloud-download me-1"></i> Initialize Batch Download`;
 }
-
-animateLine();
 </script>
 </body>
 </html>
