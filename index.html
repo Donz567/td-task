@@ -1944,6 +1944,12 @@ function toggleLog(toggleEl) {
     if (toggleEl.checked) {
         const already = logs.some(l => l.date === dateStr && l.task === taskTitle && l.folder === folderName);
         if (!already) {
+            // Check and convert "Complete" to "Completed"
+            let logStatus = task ? toProperCase(task["Status"]) : "Ongoing";
+            if (logStatus === "Complete") {
+                logStatus = "Completed";
+            }
+
             logs.push({
                 date: dateStr, 
                 shiftDate: getShiftDate(),
@@ -1953,7 +1959,7 @@ function toggleLog(toggleEl) {
                 brand: folderName,                                   
                 dateRequested: task ? formatDate(task._dateParsed) : dateStr, 
                 taskName: taskTitle,                                 
-                status: task ? toProperCase(task["Status"]) : "Ongoing", 
+                status: logStatus, 
                 dateStarted: getShiftDate(),                         
                 completedDate: task && task._completedDateParsed ? formatDate(task._completedDateParsed) : "", 
                 notes: "",
@@ -2020,7 +2026,13 @@ function syncLogsWithLiveTasks() {
         const currentTask = tasks.find(t => t["Task Name"] === l.task && (t["Folder Name"] || "").toLowerCase() === l.folder.toLowerCase());
         if (currentTask) {
             l.status = toProperCase(currentTask["Status"] || "");
-            if (l.status === "Complete" || l.status === "Completed") {
+            
+            // Update "Complete" to "Completed"
+            if (l.status === "Complete") {
+                l.status = "Completed";
+            }
+
+            if (l.status === "Completed") {
                 l.completedDate = currentTask._completedDateParsed ? formatDate(currentTask._completedDateParsed) : l.shiftDate;
             } else {
                 l.completedDate = "";
@@ -2109,7 +2121,7 @@ function showLogs() {
         <td><span class="badge bg-dark">${displayDate}</span></td>
         <td><span class="badge bg-secondary">${log.brand || log.folder || "N/A"}</span></td>
         <td><div class="text-truncate" style="max-width: 180px;" title="${log.taskName || log.task}">${log.taskName || log.task || "N/A"}</div></td>
-        <td><span class="badge ${currentStatus === 'Complete' ? 'bg-success' : currentStatus === 'Ongoing' ? 'bg-warning text-dark' : 'bg-info'}">${log.status || "N/A"}</span></td>
+        <td><span class="badge ${currentStatus === 'Complete' || currentStatus === 'Completed' ? 'bg-success' : currentStatus === 'Ongoing' ? 'bg-warning text-dark' : 'bg-info'}">${log.status || "N/A"}</span></td>
         <td>
           <input type="text" class="form-control form-control-sm" placeholder="Add note..." value="${log.notes || ''}" onchange="updateLogNote(${index}, this.value)">
         </td>
