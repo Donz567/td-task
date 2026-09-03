@@ -1955,12 +1955,13 @@ function toggleLog(toggleEl) {
                 shiftDate: getShiftDate(),
                 taskType: task ? (task["Task Type"] || "") : "",     
                 taskCategory: task ? (task["List Name"] || "") : "", 
-                subTask: task ? (task["Tags"] || "") : "",           
-                brand: folderName,                                   
+                subTask: task ? (task["Tags"] || "") : "",            
+                brand: folderName,                                    
                 dateRequested: task ? formatDate(task._dateParsed) : dateStr, 
                 taskName: taskTitle,                                 
                 status: logStatus, 
-                dateStarted: getShiftDate(),                         
+                // Set Date Started to match the source spreadsheet's parsed date
+                dateStarted: task && task._dateParsed ? formatDate(task._dateParsed) : getShiftDate(),                         
                 completedDate: task && task._completedDateParsed ? formatDate(task._completedDateParsed) : "", 
                 notes: "",
                 bcLink: task ? (task["Click Up Link"] || "") : "",   
@@ -2036,6 +2037,13 @@ function syncLogsWithLiveTasks() {
                 l.completedDate = currentTask._completedDateParsed ? formatDate(currentTask._completedDateParsed) : l.shiftDate;
             } else {
                 l.completedDate = "";
+            }
+            
+            // Retroactively sync source spreadsheet date for existing logs
+            if (currentTask._dateParsed) {
+                const sheetDate = formatDate(currentTask._dateParsed);
+                l.dateRequested = sheetDate;
+                l.dateStarted = sheetDate;
             }
         }
     });
@@ -2233,7 +2241,8 @@ function generateWorkLog() {
       escape(""),                           
       escape(l.taskName || l.task),         
       escape(l.status || ""),               
-      escape(l.dateStarted || l.shiftDate), 
+      // Maps to the synced spreadsheet date
+      escape(l.dateStarted || l.dateRequested || l.shiftDate), 
       escape(l.completedDate || ""),        
       escape(l.notes || ""),                
       escape(l.bcLink || "")                
