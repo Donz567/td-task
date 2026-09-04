@@ -396,7 +396,7 @@ body {
     display: inline-block;
     width: 70px;
     height: 33px;
-}
+    }
 .toggle-switch input { opacity: 0; width: 0; height: 0; }
 .slider {
     position: absolute;
@@ -1033,6 +1033,10 @@ body {
 </div>
 
 <div class="floating-actions">
+    <button id="amzNotifToggleBtn" class="btn glass-btn shadow" onclick="toggleAmazonNotifs()">
+        <i class="bi bi-bell" id="amzNotifIcon"></i> Amz Notifs: <span id="amzNotifStateText">OFF</span>
+    </button>
+
     <button id="aboutBtn" class="btn glass-btn shadow">
         <i class="bi bi-info-circle"></i> About
     </button>
@@ -1147,10 +1151,84 @@ async function initApp() {
     setupStatusFilters();
     filterTasks();
     requestNotificationPermission();
+    checkAmzNotifState();
     
     setTimeout(notifyDailyOngoingTasks, 2000); 
     setTimeout(notifyUrgentUnworkedTasks, 5000); 
     setInterval(notifyUrgentUnworkedTasks, 4 * 60 * 60 * 1000); 
+}
+
+const AMZ_BRANDS = ["Bumbleride", "SafetyShirtz", "Superga"];
+const AMZ_TASK = "Amazon Notif";
+
+function checkAmzNotifState() {
+    const now = new Date();
+    const dateStr = now.toISOString().split("T")[0];
+    const logs = JSON.parse(localStorage.getItem("exclusiveTM_taskLogs") || "[]");
+
+    const allExist = AMZ_BRANDS.every(brand =>
+        logs.some(l => l.date === dateStr && l.task === AMZ_TASK && l.brand === brand)
+    );
+
+    const btn = document.getElementById("amzNotifToggleBtn");
+    const stateText = document.getElementById("amzNotifStateText");
+    const icon = document.getElementById("amzNotifIcon");
+    if (!btn) return;
+
+    if (allExist) {
+        btn.classList.add("glass-btn-light");
+        btn.classList.remove("glass-btn");
+        stateText.innerText = "ON";
+        icon.className = "bi bi-bell-fill text-primary";
+        btn.dataset.state = "on";
+    } else {
+        btn.classList.add("glass-btn");
+        btn.classList.remove("glass-btn-light");
+        stateText.innerText = "OFF";
+        icon.className = "bi bi-bell";
+        btn.dataset.state = "off";
+    }
+}
+
+function toggleAmazonNotifs() {
+    const btn = document.getElementById("amzNotifToggleBtn");
+    const isCurrentlyOn = btn.dataset.state === "on";
+
+    const now = new Date();
+    const dateStr = now.toISOString().split("T")[0];
+    let logs = JSON.parse(localStorage.getItem("exclusiveTM_taskLogs") || "[]");
+
+    if (!isCurrentlyOn) {
+        AMZ_BRANDS.forEach(brand => {
+            const exists = logs.some(l => l.date === dateStr && l.task === AMZ_TASK && l.brand === brand);
+            if (!exists) {
+                logs.push({
+                    date: dateStr,
+                    shiftDate: getShiftDate(),
+                    taskType: "Monitoring", 
+                    taskCategory: "Monitoring",
+                    subTask: "Monitoring",
+                    brand: brand,
+                    dateRequested: dateStr,
+                    taskName: AMZ_TASK,
+                    status: "Completed",
+                    dateStarted: dateStr,
+                    completedDate: dateStr,
+                    notes: "",
+                    bcLink: "",
+                    folder: brand,
+                    task: AMZ_TASK
+                });
+            }
+        });
+        showBanner("Amazon Notifs auto-logged for today!", "success");
+    } else {
+        logs = logs.filter(l => !(l.date === dateStr && l.task === AMZ_TASK && AMZ_BRANDS.includes(l.brand)));
+        showBanner("Amazon Notifs removed from logs.", "secondary");
+    }
+
+    localStorage.setItem("exclusiveTM_taskLogs", JSON.stringify(logs));
+    checkAmzNotifState(); 
 }
 
 function requestNotificationPermission() {
@@ -2393,8 +2471,6 @@ function imgProc_processImage(url, ctx, size) {
         img.src = url;
     });
 }
-
-
 // ==========================================
 // --- CALCULATOR LOGIC ---
 // ==========================================
@@ -2784,6 +2860,7 @@ async function ds_startBulkDownload() {
     btn.disabled = false;
     btn.innerHTML = `<i class="bi bi-cloud-download me-1"></i> Initialize Batch Download`;
 }
+
 </script>
 </body>
 </html>
