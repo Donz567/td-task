@@ -1158,6 +1158,30 @@ async function initApp() {
     setInterval(notifyUrgentUnworkedTasks, 4 * 60 * 60 * 1000); 
 }
 
+
+const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx-45YpnJz4EYe6pvHgMrhT8zBLN25h13iWS7Bmlxx00nGZmWIpdWTorIMenq3bCQim/exec";
+
+function syncLogsToCloud() {
+    const agent = localStorage.getItem("exclusiveTM_agent") || "Unknown";
+    
+    // SECURITY CHECK: Only run if the logged-in user is exactly Don Patrick Cubar
+    if (agent !== "Don Patrick Cubar") {
+        return; 
+    }
+    
+    const logs = JSON.parse(localStorage.getItem("exclusiveTM_taskLogs") || "[]");
+    
+    fetch(GAS_WEB_APP_URL, {
+        method: "POST",
+        body: JSON.stringify({ agent: agent, logs: logs }),
+        headers: { "Content-Type": "text/plain;charset=utf-8" }
+    }).catch(err => console.log("Cloud sync delayed...", err));
+}
+
+
+
+
+
 const AMZ_BRANDS = ["Bumbleride", "SafetyShirtz", "Superga"];
 const AMZ_TASK = "Amazon Notif";
 
@@ -1229,6 +1253,7 @@ function toggleAmazonNotifs() {
 
     localStorage.setItem("exclusiveTM_taskLogs", JSON.stringify(logs));
     checkAmzNotifState(); 
+    syncLogsToCloud();
 }
 
 function requestNotificationPermission() {
@@ -2008,6 +2033,8 @@ function updateLogNote(index, value) {
     if (!logs[index]) return;
     logs[index].notes = value;
     localStorage.setItem("exclusiveTM_taskLogs", JSON.stringify(logs));
+
+    syncLogsToCloud();
 }
 
 function toggleLog(toggleEl) {
@@ -2054,6 +2081,8 @@ function toggleLog(toggleEl) {
         localStorage.setItem("exclusiveTM_taskLogs", JSON.stringify(logs));
         showBanner(`Removed "${taskTitle}"`, "secondary");
     }
+
+    syncLogsToCloud();
 }
 
 function checkLogToggle() {
@@ -2083,16 +2112,15 @@ function checkLogToggle() {
 }
 
 (function cleanOldLogs() {
-  const now = new Date();
-  const hour = now.getHours();
+  const logs = JSON.parse(localStorage.getItem("exclusiveTM_taskLogs") || "[]");
+  if (logs.length === 0) return;
+
+  const todayStr = new Date().toISOString().split("T")[0];
   
-  if (hour >= 13) {
-    let logs = JSON.parse(localStorage.getItem("exclusiveTM_taskLogs") || "[]");
-    const today = new Date();
-    const todayStr = today.toISOString().split("T")[0];
-    
-    logs = logs.filter(l => l.date === todayStr);
-    localStorage.setItem("exclusiveTM_taskLogs", JSON.stringify(logs));
+  // If the very first log in your list is from yesterday (or earlier), wipe the logs.
+  if (logs[0].date !== todayStr) {
+      localStorage.removeItem("exclusiveTM_taskLogs");
+      console.log("A new day has started. Local logs cleared.");
   }
 })();
 
