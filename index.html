@@ -1097,7 +1097,12 @@ document.addEventListener("DOMContentLoaded", () => {
         filterTasks();
     });
 
-    setInterval(() => { fetchTasks().then(() => filterTasks(true)); }, 30000);
+    setInterval(() => { 
+    fetchTasks().then(() => {
+        filterTasks(true);
+        syncLogsToCloud(); // <-- Automatically updates your Google Sheet row every 30 seconds
+    }); 
+}, 30000);
 });
 
 function toProperCase(str) {
@@ -1169,7 +1174,11 @@ function syncLogsToCloud() {
         return; 
     }
     
-    const logs = JSON.parse(localStorage.getItem("exclusiveTM_taskLogs") || "[]");
+    // MAGIC FIX: Pull the absolute latest live statuses (e.g. Completed) before sending
+    const logs = syncLogsWithLiveTasks();
+    
+    // If no logs exist, don't send anything
+    if (!logs || logs.length === 0) return;
     
     fetch(GAS_WEB_APP_URL, {
         method: "POST",
