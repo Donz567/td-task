@@ -1168,13 +1168,15 @@ const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx-45YpnJz4EYe6
 
 function syncLogsToCloud() {
     const agent = localStorage.getItem("exclusiveTM_agent") || "Unknown";
+    const agentLower = agent.toLowerCase().trim();
     
-    // SECURITY CHECK: Only run if the logged-in user is exactly Don Patrick Cubar
-    if (agent !== "Don Patrick Cubar") {
+    // SECURITY CHECK: Allow Don and Joshua (Case-insensitive)
+    if (agentLower.indexOf("don") === -1 && agentLower.indexOf("joshua") === -1) {
+        console.log("Cloud sync ignored for agent:", agent);
         return; 
     }
     
-    // MAGIC FIX: Pull the absolute latest live statuses (e.g. Completed) before sending
+    // Pull the absolute latest live statuses (e.g. Completed) before sending
     const logs = syncLogsWithLiveTasks();
     
     // If no logs exist, don't send anything
@@ -1186,7 +1188,6 @@ function syncLogsToCloud() {
         headers: { "Content-Type": "text/plain;charset=utf-8" }
     }).catch(err => console.log("Cloud sync delayed...", err));
 }
-
 
 
 
